@@ -85,6 +85,9 @@
 		"index_83": "Después de iniciar los proyectos seleccionados en lotes, los proyectos serán accesibles",
 		"index_84": "Después de detener los proyectos seleccionados en lotes, los proyectos dejarán de ejecutarse",
 		"index_85": "Después de reiniciar los proyectos seleccionados en lotes, los proyectos se reiniciarán",
-		"index_86": "Lote funcionando, por favor espere..."
+		"index_86": "Lote funcionando, por favor espere...",
+		"index_87": "Copia de seguridad",
+		"index_88": "Copia de seguridad [{0}]",
+		"index_89": "Restaurando, por favor espere..."
 	}
 }

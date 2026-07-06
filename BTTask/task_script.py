@@ -61,12 +61,19 @@ def task():
 # 使用task装饰器
 # 所有导入请在函数中进行, 异常由顶层处理记录task.log
 # ======================================================
-
 # 项目守护进程
 @task()
 def project_daemon_service():
     from script.project_daemon import main as daemon_main
     daemon_main()
+
+
+# AutoDream
+@task()
+def auto_dream():
+    from mod.project.agent.comMod import AutoDream
+    AutoDream().sleep_dream()
+
 
 # ssl服务
 @task()
@@ -140,7 +147,7 @@ def check_site_monitor():
                 site_total_service) and not os.path.exists(
             os.path.join(public.get_panel_path(), "plugin/monitor/info.json")) and public.M('tasks').where(
             'name=? and status=?', ('Install [site_total_monitor]', '0')).count() < 1:
-            execstr = "curl https://node.aapanel.com/site_total/install.sh|bash"
+            execstr = f"curl {public.OfficialDownloadBase()}/site_total/install.sh|bash"
             install_name = 'Install [site_total_monitor]'
             # sleep_time = 86400
     else:
@@ -574,7 +581,7 @@ def update_vulnerabilities():
 
         # noinspection PyInconsistentReturns
         def get_yun_infos(page):
-            url = "https://wafapi2.aapanel.com/api/bt_waf/get_wordpress_scan?size=100&p=" + str(page)
+            url = f"{public.OfficialWaf2Base()}/api/bt_waf/get_wordpress_scan?size=100&p=" + str(page)
             yun_infos = requests.get(url, verify=False, timeout=60).json()
             for i in yun_infos['res']:
                 if i['data_time'] > load_time['data_time']:
@@ -611,7 +618,7 @@ def update_vulnerabilities():
         check_sql = M("plugin_error", "plugin_error").order("id desc").limit("1").field("id").find()
         if type(check_sql) != dict: return None
         time.sleep(30)
-        url = "https://wafapi2.aapanel.com/api/bt_waf/plugin_error_list"
+        url = f"{public.OfficialWaf2Base()}/api/bt_waf/plugin_error_list"
         try:
             res = requests.get(url, verify=False, timeout=60).json()
         except:
@@ -649,7 +656,7 @@ def update_vulnerabilities():
         import random
         def get_plugin_time(id):
             time.sleep(30)
-            url = "https://wafapi2.aapanel.com/api/bt_waf/get_wordpress_not_update?p=" + str(id)
+            url = f"{public.OfficialWaf2Base()}/api/bt_waf/get_wordpress_not_update?p=" + str(id)
             try:
                 res = requests.get(url, verify=False, timeout=60).json()
                 if len(res['res']) == 0:

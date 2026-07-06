@@ -6,12 +6,11 @@
 # -------------------------------------------------------------------
 # Author: wzz <wzz@aapanel.com>
 # -------------------------------------------------------------------
-import json
-import os
+
 # ------------------------------
 # nodejs项目业务接口
 # ------------------------------
-import sys
+import sys, time, shutil, os, json
 
 if "/www/server/panel/class" not in sys.path:
     sys.path.insert(0, "/www/server/panel/class")
@@ -189,6 +188,8 @@ class main(NodeJs):
             for domain, port in domains:
                 if public.M('domain').where('name=? AND port=?', (domain, port)).count():
                     self.ws_err_exit(False, 'The specified domain already exists: {}'.format(domain), code=4)
+                if port == 443:
+                    self.ws_err_exit(False, 'Port 443 is not allowed for Node.js projects', code=5)
             get.domains = ["{}:{}".format(d,p) for d, p in domains]
 
         get.nodejs_version = get.get("nodejs_version", None)
@@ -713,3 +714,428 @@ class main(NodeJs):
             self.rebuild_project(get.project_name)
 
         return public.return_message(0,0, public.lang( 'Project modified successfully'))
+
+    # 日志
+    def write_backup_log(self, status_file, status, ps, result_list):
+        data = {
+            "status": status, "error": "",
+            "backup_website": {
+                "status": status, "ps": ps, "title": public.lang("Backup Project"),
+                "result_list": result_list
+            }
+        }
+        public.writeFile(status_file, json.dumps(data))
+
+    # 文件备份
+    def _do_nodejs_file_backup(self, site_ids: list) -> None:
+        lock_file = '/tmp/nodejs_backup.lock'
+        status_file = '/tmp/nodejs_backup.log'
+
+        import threading
+        public.writeFile(lock_file, str(threading.get_ident()))
+
+        try:
+            total = len(site_ids)
+            result_list = []
+            self.write_backup_log(status_file, 0, public.lang("Backing up {}/{}").format(0, total), [])
+
+            for idx, site_id in enumerate(site_ids, 1):
+                find = public.M('sites').where("id=? AND project_type=?", (site_id, 'Node')).field('name,path,id').find()
+                if not find:
+                    result_list.append({
+                        'site_id': site_id, 'site_name': 'Unknown',
+                        'status': -1, 'msg': public.lang('Site not found')
+                    })
+                    self.write_backup_log(status_file, 0, public.lang("Backup site: {}/{}").format(idx, total), result_list)
+                    time.sleep(0.3)
+                    continue
+
+                try:
+                    site_name = find['name']
+                    site_path = find['path']
+
+                    backup_path = public.M('config').where('id=?', (1,)).getField('backup_path') + '/nodejs'
+                    if not os.path.exists(backup_path):
+                        os.makedirs(backup_path)
+
+                    file_name = '{}_{}.zip'.format(site_name, time.strftime('%Y%m%d_%H%M%S', time.localtime()))
+                    zip_path = os.path.join(backup_path, file_name)
+
+                    public.ExecShell(
+                        "cd '{}' && zip '{}' -r . -x 'node_modules/*' > /dev/null 2>&1".format(
+                            site_path, zip_path
+                        )
+                    )
+
+                    file_size = os.path.getsize(zip_path) if os.path.exists(zip_path) else 0
+                    public.M('backup').add('type,name,pid,filename,size,addtime,backup_type',
+                                           (0, file_name, find['id'], zip_path, file_size, public.getDate(), 0))
+
+                    result_list.append({
+                        'site_id': site_id, 'site_name': site_name,
+                        'status': 0, 'msg': public.lang('Backup successful'), 'file': file_name
+                    })
+                except Exception as e:
+                    result_list.append({
+                        'site_id': site_id, 'site_name': find.get('name', 'Unknown'),
+                        'status': -1, 'msg': str(e)
+                    })
+
+                self.write_backup_log(status_file, 0, public.lang("Backup site: {}/{}").format(idx, total), result_list)
+                time.sleep(0.3)
+
+            success_count = sum(1 for r in result_list if r['status'] == 0)
+            failed_count = sum(1 for r in result_list if r['status'] != 0)
+            self.write_backup_log(status_file, 1,
+                                  public.lang("Backup completed: {} success, {} failed").format(success_count, failed_count),
+                                  result_list)
+            public.write_log_gettext('Node Project', 'Batch backup completed: {} success, {} failed',
+                                     (success_count, failed_count))
+        except Exception as e:
+            self.write_backup_log(status_file, -1, public.lang("Backup failed"), [])
+            public.writeFile(status_file, json.dumps({"status": -1, "error": str(e)}))
+        finally:
+            public.progress_release_lock(lock_file)
+
+    # 全量备份
+    def _do_nodejs_full_backup(self, site_ids: list) -> None:
+        lock_file = '/tmp/nodejs_backup.lock'
+        status_file = '/tmp/nodejs_backup.log'
+
+        import threading
+        public.writeFile(lock_file, str(threading.get_ident()))
+
+        try:
+            total = len(site_ids)
+            result_list = []
+            self.write_backup_log(status_file, 0, public.lang("Backing up {}/{}").format(0, total), [])
+
+            for idx, site_id in enumerate(site_ids, 1):
+                find = public.M('sites').where("id=? AND project_type=?", (site_id, 'Node')).field(
+                    'id,name,path,project_config').find()
+                if not find:
+                    result_list.append({
+                        'site_id': site_id, 'site_name': 'Unknown',
+                        'status': -1, 'msg': public.lang('Site not found')
+                    })
+                    self.write_backup_log(status_file, 0, public.lang("Backup site: {}/{}").format(idx, total), result_list)
+                    time.sleep(0.3)
+                    continue
+
+                self.write_backup_log(status_file, 0,
+                                      public.lang("Backing up [{}] {}/{}").format(find['name'], idx, total), result_list)
+                tmp_path = None
+                try:
+                    site_name = find['name']
+                    site_path = find['path']
+                    project_config = json.loads(find['project_config'])
+
+                    tmp_path = public.make_panel_tmp_path()
+
+                    # 1. 备份项目文件
+                    self.write_backup_log(status_file, 0,
+                                          public.lang("Backing up [{}] - compressing files").format(site_name), result_list)
+                    files_tar = os.path.join(tmp_path, 'files.tar.gz')
+                    public.ExecShell(
+                        "tar -zcf '{}' -C '{}' --exclude='node_modules' . > /dev/null 2>&1".format(
+                            files_tar, site_path
+                        )
+                    )
+
+                    # 2. 备份 Web 服务器配置
+                    self.write_backup_log(status_file, 0,
+                                          public.lang("Backing up [{}] - configs").format(site_name), result_list)
+                    self._backup_nodejs_configs(site_name, os.path.join(tmp_path, 'configs'))
+
+                    # 3. 备份启动脚本
+                    script_src = '{}/vhost/scripts/{}.sh'.format(self.nodejs_path, site_name)
+                    if os.path.exists(script_src):
+                        scripts_dir = os.path.join(tmp_path, 'configs', 'scripts')
+                        os.makedirs(scripts_dir, 0o755, exist_ok=True)
+                        shutil.copy2(script_src, scripts_dir)
+
+                    # 4. 备份 PM2 ecosystem 配置
+                    has_ecosystem = False
+                    config_file = project_config.get('config_file', '')
+                    if project_config.get('project_type') == 'pm2' and config_file:
+                        if os.path.exists(config_file) and os.path.isfile(config_file):
+                            shutil.copy2(config_file, os.path.join(tmp_path, 'ecosystem.config.cjs'))
+                            has_ecosystem = True
+
+                    # 5. 获取域名列表
+                    domain_list = []
+                    domains = public.M('domain').where('pid=?', (site_id,)).field('name,port').select()
+                    if isinstance(domains, list):
+                        domain_list = domains
+
+                    # 6. 获取 Web 服务器信息
+                    try:
+                        webservice_status = public.get_multi_webservice_status()
+                        if webservice_status:
+                            site_info = public.M('sites').where('id=?', (site_id,)).field('service_type').find()
+                            webserver = site_info.get('service_type', 'nginx') if isinstance(site_info, dict) else 'nginx'
+                        else:
+                            webserver = public.get_webserver()
+                    except Exception:
+                        webserver = 'nginx'
+
+                    # 7. 写入 meta.json
+                    meta = {
+                        'backup_version': 1,
+                        'backup_type': 'nodejs_full',
+                        'backup_time': public.getDate(),
+                        'site_id': site_id,
+                        'site_name': site_name,
+                        'site_path': site_path,
+                        'project_type': project_config.get('project_type', 'nodejs'),
+                        'nodejs_version': project_config.get('nodejs_version', ''),
+                        'project_file': project_config.get('project_file', ''),
+                        'project_script': project_config.get('project_script', ''),
+                        'project_args': project_config.get('project_args', ''),
+                        'project_cwd': project_config.get('project_cwd', site_path),
+                        'pm2_name': project_config.get('pm2_name', ''),
+                        'env': project_config.get('env', ''),
+                        'run_user': project_config.get('run_user', 'www'),
+                        'port': project_config.get('port'),
+                        'config_file': config_file,
+                        'config_body': project_config.get('config_body', ''),
+                        'pkg_manager': project_config.get('pkg_manager', 'npm'),
+                        'max_memory_limit': project_config.get('max_memory_limit', 4096),
+                        'is_power_on': project_config.get('is_power_on', True),
+                        'watch': project_config.get('watch', False),
+                        'cluster': project_config.get('cluster', 1),
+                        'bind_extranet': project_config.get('bind_extranet', 0),
+                        'log_path': project_config.get('log_path', self.node_logs_path),
+                        'domain_list': domain_list,
+                        'webserver': webserver,
+                        'has_ecosystem_config': has_ecosystem,
+                        'has_start_script': os.path.exists(script_src),
+                        'addtime': public.M('sites').where('id=?', (site_id,)).getField('addtime'),
+                    }
+                    meta_file = os.path.join(tmp_path, 'meta.json')
+                    with open(meta_file, 'w', encoding='utf-8') as fp:
+                        json.dump(meta, fp, ensure_ascii=False)
+
+                    # 8. 打包最终备份文件
+                    file_name = 'full_{}_{}.tar.gz'.format(site_name, time.strftime('%Y%m%d_%H%M%S', time.localtime()))
+                    backup_path = public.M('config').where('id=?', (1,)).getField('backup_path') + '/nodejs'
+                    if not os.path.exists(backup_path):
+                        os.makedirs(backup_path)
+                    full_backup_path = os.path.join(backup_path, file_name)
+
+                    public.ExecShell("tar -zcf '{}' -C '{}' .".format(full_backup_path, tmp_path))
+
+                    file_size = os.path.getsize(full_backup_path) if os.path.exists(full_backup_path) else 0
+                    public.M('backup').add('type,name,pid,filename,size,addtime,backup_type',
+                                           (0, file_name, find['id'], full_backup_path, file_size, public.getDate(), 1))
+
+                    result_list.append({
+                        'site_id': site_id, 'site_name': site_name,
+                        'status': 0, 'msg': public.lang('Backup successful'), 'file': file_name
+                    })
+
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    result_list.append({
+                        'site_id': site_id, 'site_name': find.get('name', 'Unknown'),
+                        'status': -1, 'msg': str(e)
+                    })
+                finally:
+                    if tmp_path and os.path.exists(tmp_path):
+                        shutil.rmtree(tmp_path, ignore_errors=True)
+
+                self.write_backup_log(status_file, 0, public.lang("Backup site: {}/{}").format(idx, total), result_list)
+                time.sleep(0.3)
+
+            success_count = sum(1 for r in result_list if r['status'] == 0)
+            failed_count = sum(1 for r in result_list if r['status'] != 0)
+            self.write_backup_log(status_file, 1,
+                                  public.lang("Backup completed: {} success, {} failed").format(success_count, failed_count),
+                                  result_list)
+            public.write_log_gettext('Node Project', 'Batch full backup completed: {} success, {} failed',
+                                     (success_count, failed_count))
+        except Exception as e:
+            self.write_backup_log(status_file, -1, public.lang("Backup failed"), [])
+            public.writeFile(status_file, json.dumps({"status": -1, "error": str(e)}))
+        finally:
+            public.progress_release_lock(lock_file)
+
+    # 配置备份
+    def _backup_nodejs_configs(self, site_name: str, conf_dir: str) -> None:
+        if not os.path.exists(conf_dir):
+            os.makedirs(conf_dir, 0o755)
+
+        vhost = self.vhost_path
+
+        # --- Nginx ---
+        nginx_src = '{}/nginx/node_{}.conf'.format(vhost, site_name)
+        if os.path.exists(nginx_src):
+            nginx_dir = os.path.join(conf_dir, 'nginx')
+            os.makedirs(nginx_dir, 0o755, exist_ok=True)
+            shutil.copy2(nginx_src, nginx_dir)
+
+        well_known_src = '{}/nginx/well-known/{}'.format(vhost, site_name)
+        if os.path.exists(well_known_src):
+            well_known_dst = os.path.join(conf_dir, 'nginx', 'well-known')
+            os.makedirs(well_known_dst, 0o755, exist_ok=True)
+            shutil.copytree(well_known_src, os.path.join(well_known_dst, site_name), dirs_exist_ok=True)
+
+        # --- Apache ---
+        apache_src = '{}/apache/node_{}.conf'.format(vhost, site_name)
+        if os.path.exists(apache_src):
+            apache_dir = os.path.join(conf_dir, 'apache')
+            os.makedirs(apache_dir, 0o755, exist_ok=True)
+            shutil.copy2(apache_src, apache_dir)
+
+        # --- OpenLiteSpeed ---
+        ols_src = '{}/openlitespeed/{}.conf'.format(vhost, site_name)
+        if os.path.exists(ols_src):
+            ols_dir = os.path.join(conf_dir, 'openlitespeed')
+            os.makedirs(ols_dir, 0o755, exist_ok=True)
+            shutil.copy2(ols_src, ols_dir)
+
+        ols_detail_src = '{}/openlitespeed/detail/{}.conf'.format(vhost, site_name)
+        if os.path.exists(ols_detail_src):
+            ols_detail_dir = os.path.join(conf_dir, 'openlitespeed', 'detail')
+            os.makedirs(ols_detail_dir, 0o755, exist_ok=True)
+            shutil.copy2(ols_detail_src, ols_detail_dir)
+
+        ols_ssl_src = '{}/openlitespeed/detail/ssl/{}.conf'.format(vhost, site_name)
+        if os.path.exists(ols_ssl_src):
+            ols_ssl_dir = os.path.join(conf_dir, 'openlitespeed', 'detail', 'ssl')
+            os.makedirs(ols_ssl_dir, 0o755, exist_ok=True)
+            shutil.copy2(ols_ssl_src, ols_ssl_dir)
+
+        # --- Proxy / Extension / Dir_auth ---
+        for server in ['nginx', 'apache']:
+            proxy_src = '{}/{}/proxy/{}'.format(vhost, server, site_name)
+            if os.path.exists(proxy_src):
+                proxy_dst = os.path.join(conf_dir, server, 'proxy')
+                os.makedirs(proxy_dst, 0o755, exist_ok=True)
+                shutil.copytree(proxy_src, os.path.join(proxy_dst, site_name), dirs_exist_ok=True)
+
+            extension_src = '{}/{}/extension/{}'.format(vhost, server, site_name)
+            if os.path.exists(extension_src):
+                ext_dst = os.path.join(conf_dir, server, 'extension')
+                os.makedirs(ext_dst, 0o755, exist_ok=True)
+                shutil.copytree(extension_src, os.path.join(ext_dst, site_name), dirs_exist_ok=True)
+
+            dir_auth_src = '{}/{}/dir_auth/{}'.format(vhost, server, site_name)
+            if os.path.exists(dir_auth_src):
+                dir_auth_dst = os.path.join(conf_dir, server, 'dir_auth')
+                os.makedirs(dir_auth_dst, 0o755, exist_ok=True)
+                shutil.copytree(dir_auth_src, os.path.join(dir_auth_dst, site_name), dirs_exist_ok=True)
+
+        # --- Rewrite ---
+        rewrite_src = '{}/rewrite/node_{}.conf'.format(vhost, site_name)
+        if os.path.exists(rewrite_src):
+            rewrite_dir = os.path.join(conf_dir, 'rewrite')
+            os.makedirs(rewrite_dir, 0o755, exist_ok=True)
+            shutil.copy2(rewrite_src, rewrite_dir)
+
+        rewrite_vhost = '{}/rewrite/'.format(vhost)
+        if os.path.exists(rewrite_vhost):
+            for f in os.listdir(rewrite_vhost):
+                if f.endswith('.conf') and site_name in f:
+                    rewrite_dir = os.path.join(conf_dir, 'rewrite')
+                    os.makedirs(rewrite_dir, 0o755, exist_ok=True)
+                    shutil.copy2(os.path.join(rewrite_vhost, f), rewrite_dir)
+
+        # --- SSL Cert ---
+        cert_src = '{}/cert/{}'.format(vhost, site_name)
+        if os.path.exists(cert_src):
+            cert_dst = os.path.join(conf_dir, 'cert', site_name)
+            if os.path.exists(cert_dst):
+                shutil.rmtree(cert_dst, ignore_errors=True)
+            shutil.copytree(cert_src, cert_dst, dirs_exist_ok=True)
+
+    # 进度获取
+    def get_general_progress(self, get=None):
+        from panel_site_v2 import panelSite
+        return panelSite().get_general_progress(public.to_dict_obj({'type' : 'nodejs'}))
+
+    # id校验
+    def _parse_backup_site_ids(self, get, lock_file: str) -> list:
+        """解析并校验备份项目 ID 列表"""
+        site_ids = get.get("id", [])
+        if isinstance(site_ids, str):
+            try:
+                site_ids = json.loads(site_ids)
+            except Exception:
+                site_ids = [site_ids]
+        if not isinstance(site_ids, list):
+            site_ids = [site_ids]
+        try:
+            site_ids = [int(sid) for sid in site_ids]
+        except (ValueError, TypeError):
+            public.progress_release_lock(lock_file)
+            return []
+
+        if not site_ids:
+            public.progress_release_lock(lock_file)
+        return site_ids
+
+    # 备份入口
+    def nodejs_backup(self, get):
+        '''
+            @name 批量备份 Node.js 项目
+            @param get.id list 项目 ID 列表 [1,2,3]
+            @param get.backup_type int 备份类型 0=文件备份, 1=全量备份 默认0
+        '''
+        lock_file = '/tmp/nodejs_backup.lock'
+        if not public.progress_acquire_lock(lock_file):
+            return public.return_message(-1, 0, public.lang('Other backup task is running. Please wait!'))
+
+        site_ids = self._parse_backup_site_ids(get, lock_file)
+        if not site_ids:
+            return public.return_message(-1, 0, public.lang('No project IDs provided'))
+
+        backup_type = int(get.get('backup_type', 0))
+
+        from concurrent.futures import ThreadPoolExecutor
+        thread = ThreadPoolExecutor(max_workers=1)
+        if backup_type == 1:
+            thread.submit(self._do_nodejs_full_backup, site_ids)
+        else:
+            thread.submit(self._do_nodejs_file_backup, site_ids)
+
+        return public.return_message(0, 0, public.lang('Backup started'))
+
+    # 备份还原入口
+    def nodejs_restore(self, get):
+        '''
+            @name 还原 Node.js 项目备份
+            @param get.file_name string 备份文件名
+            @param get.site_id int 项目 ID
+            @param get.restore_type string JSON 数组 '["file","conf"]'
+        '''
+        file_name = get.get("file_name", "")
+        site_id = get.get("site_id", 0)
+        restore_type = get.get("restore_type", '["file","conf"]')
+
+        if not file_name:
+            return public.return_message(-1, 0, public.lang('The "file_name" parameter cannot be left blank'))
+        try:
+            site_id = int(site_id)
+        except (ValueError, TypeError):
+            return public.return_message(-1, 0, public.lang('Invalid "site_id" parameter'))
+        if not site_id:
+            return public.return_message(-1, 0, public.lang('The "site_id" parameter cannot be left blank'))
+
+        try:
+            restore_type = json.loads(restore_type)
+        except Exception:
+            restore_type = ["file", "conf"]
+
+        from mod.project.nodejs.backupMod import NodeBackup
+        nodejs = public.M('backup').where('name=? AND pid=?', (file_name, site_id)).find()
+        if not nodejs:
+            return public.return_message(-1, 0, public.lang('Backup package does not exist.'))
+
+        backup_type = nodejs.get('backup_type', 0)
+        if backup_type == 1:
+            return NodeBackup().do_nodejs_full_restore(file_name, site_id, restore_type)
+        else:
+            return NodeBackup().do_nodejs_file_restore(file_name, site_id)
+

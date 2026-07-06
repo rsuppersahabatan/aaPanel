@@ -168,9 +168,11 @@ class panelRedirect:
             if self.__CheckRedirect(get.sitename,get.redirectname,is_error_page):
                 return public.return_message(-1, 0, public.lang("Specified redirect name already exists"))
         #检测目标URL格式
-        rep = r"http(s)?\:\/\/([a-zA-Z0-9][-a-zA-Z0-9]{0,62}\.)+([a-zA-Z0-9][a-zA-Z0-9]{0,62})+.?"
-        if 'tourl' in get and not re.match(rep, get.tourl):
-            return public.return_message(-1,0, public.lang('Target URL format is wrong {}', get.tourl))
+        rep = "http(s)?\:\/\/([a-zA-Z0-9][-a-zA-Z0-9]{0,62}\.)+([a-zA-Z0-9][a-zA-Z0-9]{0,62})+.?"
+        if 'tourl' in get and get.tourl and not re.match(rep, get.tourl):
+            return public.return_message(-1, 0 , 'The format of the target URL is incorrect. %s' + get.tourl)
+        if get.tourl.endswith("/"): # 无论是否以/结尾都移除，并在使用携带路由参数时自动补充
+            get.tourl = get.tourl[:-1]
 
         #非404页面重定向检测项
         if 'errorpage' not in get:
@@ -220,10 +222,10 @@ class panelRedirect:
             if 'tourl' not in get and 'topath' not in get:
                 return public.return_message(-1, 0, public.lang("Please select where you need to redirect to"))
             #网站首页访问检测
-            if 'topath' in get and get.topath == "/":
-                domainlist=self.GetAllDomain(get.sitename)
-                self.__firsturl=self.__CheckRedirectUrl(domainlist)
-                if not self.__firsturl:return public.return_message(-1, 0, public.lang("The website cannot be accessed, please check whether the website is working properly"))
+            # if 'topath' in get and get.topath == "/":
+            #     domainlist=self.GetAllDomain(get.sitename)
+            #     self.__firsturl=self.__CheckRedirectUrl(domainlist)
+            #     if not self.__firsturl:return public.return_message(-1, 0, public.lang("The website cannot be accessed, please check whether the website is working properly"))
 
     #创建重定向
     def CreateRedirect(self,get):
@@ -362,6 +364,9 @@ class panelRedirect:
         @param get.errorpage 是否为404重定向 1是 0否
         @return json
         """
+        if public.get_webserver() == 'openlitespeed':
+            return public.return_message(-1, 0, public.lang("Do not support OpenLiteSpeed."))
+
         public.set_module_logs('panelRedirect','set_error_redirect')
         check_result = self.__CheckRedirectStart(get,"create")
         if check_result:return check_result
@@ -391,9 +396,9 @@ class panelRedirect:
             self.SetRedirectApache(get.sitename)
             self.get_apache_conf(redirect_path,site_name,get.redirectname,str(get.redirecttype))
         else:
-            return public.returnMsg(False, public.lang("web server not installed or unknown web server"))
+            return public.return_message(-1, 0, public.lang("web server not installed or unknown web server"))
         public.serviceReload()
-        return public.returnMsg(True, public.lang("404 redirect set successfully"))
+        return public.return_message(0, 0, public.lang("404 redirect set successfully"))
 
 
     def get_nginx_conf(self,redirect_path,redirecttype,site_name,redirectname,is_del=False):
@@ -426,7 +431,7 @@ class panelRedirect:
         """
         if self.__firsturl:redirect_path=self.__firsturl
         add_type=',R={}]'.format(str(r_type))
-        add_str='#REWRITE-START\n<IfModule mod_rewrite.c>\n    RewriteEngine on\n    RewriteCond %\\{REQUEST_FILENAME\\} !-f\n    RewriteCond %{REQUEST_FILENAME} !-d\n    RewriteRule . '+redirect_path+' [L'+add_type+'\n</IfModule>\n#REWRITE-END'
+        add_str='#REWRITE-START\n<IfModule mod_rewrite.c>\n    RewriteEngine on\n    RewriteCond %{REQUEST_FILENAME} !-f\n    RewriteCond %{REQUEST_FILENAME} !-d\n    RewriteRule . '+redirect_path+' [L'+add_type+'\n</IfModule>\n#REWRITE-END'
         redirectname_md5 = self.__calc_md5(redirectname)
         file_path= "%s/panel/vhost/apache/redirect/%s" % (self.setupPath,site_name)
         public.ExecShell("mkdir -p %s" % file_path)
@@ -517,11 +522,11 @@ class panelRedirect:
                 else:
                     redirecttype = "redirect"
                 if int(get.holdpath) == 1 and redirecttype == "permanent":
-                    rconf += pathstr % (redirectpath,tourl,"$1",redirecttype)
+                    rconf += pathstr % (redirectpath,tourl,"/$1",redirecttype)
                 elif int(get.holdpath) == 0 and redirecttype == "permanent":
                     rconf += pathstr % (redirectpath, tourl,"",redirecttype)
                 elif int(get.holdpath) == 1 and redirecttype == "redirect":
-                    rconf += pathstr % (redirectpath,tourl,"$1",redirecttype)
+                    rconf += pathstr % (redirectpath,tourl,"/$1",redirecttype)
                 elif int(get.holdpath) == 0 and redirecttype == "redirect":
                     rconf += pathstr % (redirectpath, tourl,"",redirecttype)
             rconf += "#REWRITE-END"
@@ -675,7 +680,6 @@ class panelRedirect:
                 if 'errorpage' in get and 'errorpage' in i and int(get.errorpage)!=int(i['errorpage']):continue
                 if  'errorpage' in i and i['errorpage'] in [1,'1']:i['redirectdomain']=['404 page']
                 redirectlist.append(i)
-        print(redirectlist)
         return public.return_message(0,0,redirectlist)
 
     def ClearOldRedirect(self,get):

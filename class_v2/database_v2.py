@@ -91,15 +91,24 @@ class database(datatool.datatools):
         return public.fail_v2("db not found")
 
     def __check_auth(self):
-        try:
-            from pluginAuth import Plugin
-            plugin_obj = Plugin(False)
-            plugin_list = plugin_obj.get_plugin_list()
-            if int(plugin_list['ltd']) > time.time():
-                return True
-            return False
-        except:
-            return False
+        '''
+            @name 检测授权
+            @author lkq@bt.cn
+            @time 2022-10-10
+            @return bool
+        '''
+        from plugin_auth_v2 import Plugin as Plugin
+        plugin_obj = Plugin(False)
+        plugin_list = plugin_obj.get_plugin_list()
+
+        # 如果 "pro" 不存在/为空/非法，就用 "ltd" 的值兜底
+        pro_value = plugin_list.get("pro")
+        if not pro_value or str(pro_value).strip() == "":
+            pro_value = plugin_list.get("ltd", "0")
+
+        import PluginLoader
+        self.__IS_PRO_MEMBER = PluginLoader.get_auth_state() > 0
+        return int(pro_value) > time.time() or self.__IS_PRO_MEMBER
 
     def __check_mysql_query_error(self, result):
         isError = self.IsSqlError(result)
@@ -1172,7 +1181,7 @@ SetLink
                     admin_user = mysql_obj._USER
                     m_version = mysql_obj.query('select version();')[0][0]
 
-                if any(mysql_version in m_version for mysql_version in ['5.7', '8.0', '8.4', '9.0']):
+                if any(mysql_version in m_version for mysql_version in ['5.7', '8.0', '8.4', '9.0', '9.7']):
                     accept = self.map_to_list(
                         mysql_obj.query("select Host from mysql.user where User='{}'".format(admin_user)))
                     for my_host in accept:
@@ -1182,7 +1191,7 @@ SetLink
                         mysql_obj.execute(
                             "ALTER USER `%s`@`%s` IDENTIFIED BY '%s'" % (admin_user, my_host[0], password)
                         )
-                elif any(mariadb_ver in m_version for mariadb_ver in ['10.5.', '10.4.', '10.6.', '10.7.', '10.11.', '11.3.']):
+                elif any(mariadb_ver in m_version for mariadb_ver in ['10.5.', '10.4.', '10.6.', '10.7.', '10.11.', '11.3.', '11.8']):
                     accept = self.map_to_list(
                         mysql_obj.query("select Host from mysql.user where User='{}'".format(admin_user)))
                     for my_host in accept:
@@ -1262,14 +1271,14 @@ SetLink
         if not user_result:
             return public.return_message(-1,0, "User Db Not Found, please Sync ALL And Reset The Password")
 
-        if any(mysql_version in m_version for mysql_version in ['5.7', '8.0', '8.4', '9.0']):
+        if any(mysql_version in m_version for mysql_version in ['5.7', '8.0', '8.4', '9.0', '9.7']):
             accept = self.map_to_list(mysql_obj.query("select Host from mysql.user where User='" + username + "' AND Host!='localhost'"))
             mysql_obj.execute("update mysql.user set authentication_string='' where User='" + username + "'")
             result = mysql_obj.execute("ALTER USER `%s`@`localhost` IDENTIFIED BY '%s'" % (username, newpassword))
             for my_host in accept:
                 mysql_obj.execute("ALTER USER `%s`@`%s` IDENTIFIED BY '%s'" % (username, my_host[0], newpassword))
         elif any(mariadb_ver in m_version for mariadb_ver in [
-            '10.5.', '10.4.', '10.6.', '10.7.', '10.11.', '11.3.', '11.4.'
+            '10.5.', '10.4.', '10.6.', '10.7.', '10.11.', '11.3.', '11.4.', '11.8'
         ]):
             accept = self.map_to_list(mysql_obj.query("select Host from mysql.user where User='" + username + "' AND Host!='localhost'"))
             result = mysql_obj.execute("ALTER USER `%s`@`localhost` IDENTIFIED BY '%s'" % (username, newpassword))

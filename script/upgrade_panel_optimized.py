@@ -133,7 +133,10 @@ class Version:
         self.update_time = 0
 
         panel_packet_name = self.panel_packet_name()
-        url = f"https://node.aapanel.com/install/update/{panel_packet_name}-{self}.pl"
+        if "/www/server/panel/class" not in sys.path:
+            sys.path.insert(0, "/www/server/panel/class")
+        import public
+        url = f"{public.OfficialDownloadBase()}/install/update/{panel_packet_name}-{self}.pl"
         try:
             info = http_get(url)
             info_dict = json.loads(info)
@@ -165,7 +168,10 @@ class Version:
             print("WARNING: Failed to retrieve version checksum info. Please verify the source.")
 
         panel_packet_name = self.panel_packet_name()
-        down_url = f"https://node.aapanel.com/install/update/{panel_packet_name}-{self}.zip"
+        if "/www/server/panel/class" not in sys.path:
+            sys.path.insert(0, "/www/server/panel/class")
+        import public
+        down_url = f"{public.OfficialDownloadBase()}/install/update/{panel_packet_name}-{self}.zip"
         # 下载主文件
         if not download_with_progress(down_url, filename):
             return False

@@ -1321,6 +1321,9 @@ echo $! > {pid_file}'''.format(
             except ValueError:
                 res_domains.append({"name": domain, "status": False, "msg": 'Domain name format error'})
                 continue
+            if int(domain_arr[1]) == 443:
+                res_domains.append({"name": domain, "status": False, "msg": 'Port 443 is not allowed for Go projects'})
+                continue
 
             if not public.M('domain').where('name=? and port=?', (domain_arr[0], domain_arr[1])).count():
                 public.M('domain').add('name,pid,port,addtime', (domain_arr[0], project_id, domain_arr[1], public.getDate()))
@@ -1446,6 +1449,8 @@ echo $! > {pid_file}'''.format(
             if domain_arr[1] == "":
                 domain_arr[1] = 80
                 domain += ':80'
+            if int(domain_arr[1]) == 443:
+                return self.return_result(get,-1,'Port 443 is not allowed for Go projects')
             if public.M('domain').where('name=? AND port=?', (domain_arr[0], domain_arr[1])).count():
                 return self.return_result(get,-1,'The specified domain name already exists: {}'.format(domain))
 

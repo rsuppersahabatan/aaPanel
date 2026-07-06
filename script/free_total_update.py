@@ -4,7 +4,12 @@ import requests
 import os
 import logging
 import tempfile
+import sys
+os.chdir('/www/server/panel/')
 
+if "/www/server/panel/class" not in sys.path:
+    sys.path.insert(0, "/www/server/panel/class")
+import public
 
 class UpdateSiteTotal:
     # 类级别的常量定义，集中管理固定配置
@@ -12,9 +17,11 @@ class UpdateSiteTotal:
     INSTALL_SCRIPT_TIMEOUT = 600  # 安装脚本超时时间(秒)
     VERSION_CHECK_TIMEOUT = 10    # 版本检查超时时间(秒)
     SCRIPT_DOWNLOAD_TIMEOUT = 15  # 脚本下载超时时间(秒)
-
     site_total_path = '/www/server/site_total'
-    download_url = 'https://node.aapanel.com/site_total/'
+    try:
+        download_url = f'{public.OfficialDownloadBase()}/site_total/'
+    except:
+        download_url = 'https://node.aapanel.com'
     version_url = download_url + 'version.txt'
     install_sh = download_url + 'install.sh'
     site_total_bin = os.path.join(site_total_path, 'site_total')

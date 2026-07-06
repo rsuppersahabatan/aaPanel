@@ -105,6 +105,18 @@ def default_languages_config():
                     "google": "fa",
                     "title": "فارسی",
                     "cn": "波斯语"
+                },
+               {
+                    "name": "ar",
+                    "google": "ar",
+                    "title": "العربية",
+                    "cn": "阿拉伯语"
+               },
+                {
+                "name": "lo",
+                "google": "lo",
+                "title": "ພາສາລາວ",
+                "cn": "老挝语"
                 }
             ]
         }
@@ -766,7 +778,7 @@ def GetConfigValue(key):
          "template": "default", "logs_path": "/www/wwwlogs", "home": "https://www.aapanel.com", "recycle_bin": True}
         writeFile('/www/server/panel/config/config.json',json.dumps(config))
     if not key in config.keys():
-        if key == 'download': return 'http://node.aapanel.com'
+        if key == 'download': return OfficialDownloadBase()
         return None
     return config[key]
 
@@ -1152,58 +1164,184 @@ def get_timeout(url, timeout=3):
 
 
 def get_url(timeout=0.5):
-    return 'https://node.aapanel.com'
+    return smart_get_node("download_base")
 
-    import json
+
+# ================== 节点容灾切换 ==================
+NODES_CONFIG = {
+    # 要拿的url              主                                 备
+    'offical_base':      ['https://www.aapanel.com',         'https://sg1-www.aapanel.com'],
+    'api_base':          ['https://api.aapanel.com',         'https://sg1-api.aapanel.com'],
+    'plugin_base':       ['https://download.aapanel.com',    'https://sg1-www.aapanel.com'],
+    'download_base':     ['https://node.aapanel.com',        'https://jp1-node.aapanel.com'],
+    'waf_base':          ['https://wafapi.aapanel.com',      'https://sg1-wafapi.aapanel.com'],
+    'waf2_base':         ['https://wafapi2.aapanel.com',     'https://sg1-wafapi2.aapanel.com'],
+    'w-check_base':      ['https://w-check.aapanel.com',     'https://sg1-w-check.aapanel.com'],
+    'webshellcheck_base':['https://webshellcheck.aapanel.com','https://sg1-webshellcheck.aapanel.com'],
+    'geterror_base':     ['https://geterror.aapanel.com',    'https://sg1-geterror.aapanel.com'],
+}
+
+_NODE_HOST_INDEX = {}          # host -> [node_type] install 时构建一次,只读
+_STATE_FILE = '/www/server/panel/data/node_state.json'
+_original_session_request = None
+
+
+def _host_of(url):
+    """提取 url 的 host"""
     try:
-        pkey = 'node_url'
-        node_url = cache_get(pkey)
-        if node_url: return node_url
-        nodeFile = 'data/node.json'
-        node_list = json.loads(readFile(nodeFile))
-        mnode1 = []
-        mnode2 = []
-        mnode3 = []
-        new_node_list = {}
-        for node in node_list:
-            node['net'], node['ping'] = get_timeout(
-                node['protocol'] + node['address'] + ':' + node['port'] + '/net_test', 1)
-            new_node_list[node['address']] = node['ping']
-            if not node['ping']: continue
-            if node['ping'] < 100:  # 当响应时间<100ms且可用带宽大于1500KB时
-                if node['net'] > 1500:
-                    mnode1.append(node)
-                elif node['net'] > 1000:
-                    mnode3.append(node)
-            else:
-                if node['net'] > 1000:  # 当响应时间>=100ms且可用带宽大于1000KB时
-                    mnode2.append(node)
-            if node['ping'] < 100:
-                if node['net'] > 3000: break  # 有节点可用带宽大于3000时，不再检查其它节点
-        if mnode1:  # 优选低延迟高带宽
-            mnode = sorted(mnode1, key=lambda x: x['net'], reverse=True)
-        elif mnode3:  # 备选低延迟，中等带宽
-            mnode = sorted(mnode3, key=lambda x: x['net'], reverse=True)
-        else:  # 终选中等延迟，中等带宽
-            mnode = sorted(mnode2, key=lambda x: x['ping'], reverse=False)
+        from urllib.parse import urlparse
+        return urlparse(url).hostname
+    except Exception:
+        return None
 
-        if not mnode: return 'https://node.aapanel.com'
 
-        new_node_keys = new_node_list.keys()
-        for i in range(len(node_list)):
-            if node_list[i]['address'] in new_node_keys:
-                node_list[i]['ping'] = new_node_list[node_list[i]['address']]
-            else:
-                node_list[i]['ping'] = 500
+def _build_node_host_index():
+    """host -> [node_type] 反索引 存在一对多的情况注意"""
+    idx = {}
+    for node_type, nodes_list in NODES_CONFIG.items():
+        for node_url in nodes_list:
+            host = _host_of(node_url)
+            if host:
+                idx.setdefault(host, []).append(node_type)
+    return idx
 
-        new_node_list = sorted(node_list, key=lambda x: x['ping'], reverse=False)
-        writeFile(nodeFile, json.dumps(new_node_list))
-        node_url = mnode[0]['protocol'] + mnode[0]['address'] + ':' + mnode[0]['port']
-        cache_set(pkey, node_url, 86400)
-        return node_url
-    except:
-        return 'https://node.aapanel.com'
 
+def _is_node_ok(status_code):
+    """节点健康判定:status_code==0失败/非2xx-3xx/403/404 均失败"""
+    return status_code and 200 <= status_code < 400 and status_code not in [403, 404]
+
+
+def _load_state():
+    """current 状态: {node_type: url}"""
+    try:
+        return json.loads(readFile(_STATE_FILE) or '{}')
+    except Exception:
+        return {}
+
+
+def _save_state(data):
+    """原子写状态"""
+    tmp = _STATE_FILE + '.tmp'
+    with open(tmp, 'w') as f:
+        json.dump(data, f)
+    os.replace(tmp, _STATE_FILE)
+
+
+def _set_state(node_type, url):
+    """更新单 node_type 的 current; 返回是否发生变化"""
+    import fcntl
+    with open(_STATE_FILE + '.lock', 'w') as lf:
+        fcntl.flock(lf, fcntl.LOCK_EX)
+        try:
+            data = _load_state()
+            if data.get(node_type) == url:
+                return False
+            data[node_type] = url
+            _save_state(data)
+            return True
+        finally:
+            fcntl.flock(lf, fcntl.LOCK_UN)
+
+
+def _record_node_result(node_type, success):
+    """记录节点请求结果; 失败且当前仍是 Primary 则返回 True(应切 Secondary)。阈值=1: 任一次失败即切"""
+    if success:
+        return False
+    primary = NODES_CONFIG[node_type][0]
+    return _load_state().get(node_type, primary) == primary
+
+
+def _switch_to_secondary(node_type):
+    nodes = NODES_CONFIG[node_type]
+    secondary = nodes[1] if len(nodes) > 1 else nodes[0]
+    if not _set_state(node_type, secondary):
+        return
+    print_log('[AAPANEL] [failover] {} primary {} down, switched to secondary {}'.format(
+        node_type, nodes[0], secondary))
+    # 恢复探测由 BTTask node_failover_recovery 定时兜底(常驻跨进程), 本进程不起探测线程
+
+
+def _record_node_failure(url):
+    """url 探测/下载失败且为某 node_type 的 Primary 时喂判定"""
+    host = _host_of(url)
+    if not host:
+        return
+    for node_type, nodes in NODES_CONFIG.items():
+        if host == _host_of(nodes[0]):
+            if _record_node_result(node_type, False):
+                _switch_to_secondary(node_type)
+            break
+
+
+def _switch_back_to_primary(node_type):
+    primary = NODES_CONFIG[node_type][0]
+    if not _set_state(node_type, primary):
+        return
+    print_log('[AAPANEL] [failover] {} primary {} recovered, switched back from secondary'.format(node_type, primary))
+
+
+def _try_recover_to_primary(node_type):
+    """单次探测 Primary 恢复: current 已 Primary→'primary'; 探测 OK 切回→'recovered'; 否则→'still_down'. 仅 BTTask node_failover_recovery 调用"""
+    primary = NODES_CONFIG[node_type][0]
+    if _load_state().get(node_type, primary) == primary:
+        return 'primary'
+    try:
+        import http_requests
+        res = http_requests.get(primary, timeout=(2, 3))
+        if _is_node_ok(res.status_code):
+            _switch_back_to_primary(node_type)
+            return 'recovered'
+    except Exception:
+        pass
+    return 'still_down'
+
+
+def _patched_session_request(self, method, url, *args, **kwargs):
+    """requests.Session.request:命中节点 Primary host 的请求被动计数,连续失败切 Secondary
+       非节点 url / stream 下载  直透, 依赖其他失败来切换"""
+    host = _host_of(url)
+    node_types = _NODE_HOST_INDEX.get(host) if host else None
+    if not node_types or kwargs.get('stream'):
+        return _original_session_request(self, method, url, *args, **kwargs)
+    if 'timeout' not in kwargs:                  # 防御:节点请求未指定 timeout 时兜底
+        kwargs['timeout'] = 10
+    success = False
+    try:
+        resp = _original_session_request(self, method, url, *args, **kwargs)
+        success = _is_node_ok(resp.status_code)
+        return resp
+    except Exception:
+        success = False
+        raise
+    finally:
+        for nt in node_types:
+            # 仅当请求的 host 是该 node_type 的 Primary host 才计 streak(P1)
+            if _host_of(NODES_CONFIG[nt][0]) == host:
+                if _record_node_result(nt, success):
+                    _switch_to_secondary(nt)
+
+
+def install_node_failover_patch():
+    """开局全局补丁(被动判定+切换 current); 恢复探测交 BTTask node_failover_recovery 定时兜底, 本进程不做"""
+    global _original_session_request, _NODE_HOST_INDEX
+    import requests
+    if _original_session_request is None:
+        _original_session_request = requests.Session.request
+        requests.Session.request = _patched_session_request
+        _NODE_HOST_INDEX = _build_node_host_index()
+
+
+def smart_get_node(node_type: str = "offical_base"):
+    """
+    查询指定类型的当前可用节点 url(跨进程共享)
+    node_type名字 详见 NODES_CONFIG
+    """
+    nodes_list = NODES_CONFIG.get(node_type)
+    if not nodes_list:
+        return ''
+    return _load_state().get(node_type, nodes_list[0])
+
+# ================== 节点容灾切换 End ==================
 
 # 过滤输入
 def checkInput(data):
@@ -1470,13 +1608,59 @@ def get_requests_headers():
     return {"Content-type": "application/x-www-form-urlencoded", "User-Agent": "BT-Panel"}
 
 
-def downloadFile(url, filename):
+def _alt_node_url(url):
+    """url 命中节点时返回替换节点(Primary↔Secondary)的 url(保留 path/query);否则 None"""
+    try:
+        from urllib.parse import urlparse
+        p = urlparse(url)
+        host = p.hostname
+        if not host:
+            return None
+        suffix = p.path + (('?' + p.query) if p.query else '')
+        for nodes in NODES_CONFIG.values():
+            if len(nodes) < 2:
+                continue
+            if host == _host_of(nodes[0]):
+                return nodes[1] + suffix
+            if host == _host_of(nodes[1]):
+                return nodes[0] + suffix
+        return None
+    except Exception:
+        return None
+
+
+def _download_candidates(url):
+    """下载候选 url:当前节点优先 + 替换节点(去重)"""
+    cands = [url]
+    alt = _alt_node_url(url)
+    if alt and alt not in cands:
+        cands.append(alt)
+    return cands
+
+
+def _probe_node_reachable(url, timeout=3):
+    """TCP 探测节点可达性(短 timeout connect),可达返回 True"""
+    try:
+        import socket
+        from urllib.parse import urlparse
+        p = urlparse(url)
+        host = p.hostname
+        if not host:
+            return False
+        port = p.port or (443 if p.scheme == 'https' else 80)
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except Exception:
+        return False
+
+
+def _download_once(url, filename):
+    """单次下载:Py3 urlretrieve / Py2 requests,wget 兜底。成功(文件非空)返回 True"""
+    ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.135 Safari/537.36'
     try:
         if sys.version_info[0] == 2:
             import requests
-            headers = {
-                'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.135 Safari/537.36'}
-            r = requests.get(url, headers=headers, verify=False)
+            r = requests.get(url, headers={'User-agent': ua}, verify=False)
             with open(filename, "wb") as f:
                 f.write(r.content)
         else:
@@ -1484,12 +1668,41 @@ def downloadFile(url, filename):
             import ssl
             ssl._create_default_https_context = ssl._create_unverified_context
             opener = urllib.request.build_opener()
-            opener.addheaders = [('User-agent',
-                                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.135 Safari/537.36')]
+            opener.addheaders = [('User-agent', ua)]
             urllib.request.install_opener(opener)
             urllib.request.urlretrieve(url, filename=filename)
     except:
         ExecShell("wget -O {} {} --no-check-certificate".format(filename, url))
+    return os.path.exists(filename) and os.path.getsize(filename) > 0
+
+
+def downloadFile(url, filename):
+    """下载文件;下载前 TCP 探测候选节点选可达的再下载 """
+    for candidate in _download_candidates(url):
+        if not _probe_node_reachable(candidate):
+            print_log('[AAPANEL] [failover] downloadFile {} unreachable, skip'.format(candidate))
+            _record_node_failure(candidate)
+            continue
+        if _download_once(candidate, filename):
+            if candidate != url:
+                print_log('[AAPANEL] [failover] downloadFile {} unreachable, switched to {}'.format(url, candidate))
+            return True
+        print_log('[AAPANEL] [failover] downloadFile {} reachable but download failed, try next'.format(candidate))
+        _record_node_failure(candidate)
+    return False
+
+
+def get_reachable_url(url, timeout=3):
+    """探测 url 可达性返回可用下载节点, 同时协同容灾状态(不可达喂判定切 Secondary + 试备用)
+       downloadFile / OfficialDownloadBase 友好下载类型 共用, 孤儿api跨进程使用"""
+    if _probe_node_reachable(url, timeout):
+        return url
+    _record_node_failure(url)
+    alt = _alt_node_url(url)
+    if alt and _probe_node_reachable(alt, timeout):
+        print_log('[AAPANEL] [failover] {} unreachable, use {}'.format(url, alt))
+        return alt
+    return url
 
 
 def exists_args(args, get):
@@ -1907,14 +2120,12 @@ def checkWebConfig(repair_num=2, path=None):
             if repair_num > 0:
                 repair_num -= 1
                 change_nginx_old_http2()
-                # print_log('nginx----2')
                 return checkWebConfig(repair_num)
 
         if result[1].find('[emerg] invalid parameter "quic" in') != -1 and web_s == "nginx" and not is_nginx_http3():
             if repair_num > 0:
                 repair_num -= 1
                 remove_nginx_quic()
-                # print_log('nginx----3')
                 return checkWebConfig(repair_num)
 
         WriteLog("TYPE_SOFT", 'CONF_CHECK_ERR', (result[1],))
@@ -1976,7 +2187,7 @@ def err_collect(error_info, type, error_id):
     # 提交异常报告
     if not cache_get(pkey):
         try:
-            run_thread(httpPost, ("https://geterror.aapanel.com/bt_error/index.php", error_infos))
+            run_thread(httpPost, (f"{OfficialGetErrorBase()}/bt_error/index.php", error_infos))
             cache_set(pkey, 1, 1800)
         except Exception as e:
             pass  # 错误信息
@@ -2080,6 +2291,7 @@ def CheckMyCnf():
             version = key
             break
 
+    download_url = smart_get_node('download_base')
     shellStr = '''
 #!/bin/bash
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
@@ -2104,7 +2316,7 @@ export PATH
 #     nodeAddr=$CF
 # fi
 
-Download_Url=https://node.aapanel.com
+Download_Url=%s
 
 
 MySQL_Opt()
@@ -2182,7 +2394,7 @@ MySQL_Opt()
 wget -O /etc/my.cnf $Download_Url/install/conf/mysql-%s.conf -T 5
 chmod 644 /etc/my.cnf
 MySQL_Opt
-''' % (version,)
+''' % (download_url, version)
     ExecShell(shellStr)
     # 判断是否迁移目录
     if os.path.exists('data/datadir.pl'):
@@ -7680,11 +7892,11 @@ def check_auth_ip():
     """
     import http_requests
     result = {'www': '', 'api': ''}
-    res = http_requests.post('https://wafapi2.aapanel.com/api/getIpAddress', data={}, timeout=5, headers={})
+    res = http_requests.post(f'{OfficialWaf2Base()}/api/getIpAddress', data={}, timeout=5, headers={})
     if res.status_code == 200:
         result['www'] = res.text
 
-    res1 = http_requests.post('https://wafapi.aapanel.com/api/getIpAddress', data={}, timeout=5, headers={})
+    res1 = http_requests.post(f'{OfficialWafBase()}/api/getIpAddress', data={}, timeout=5, headers={})
     if res1.status_code == 200:
         result['api'] = res1.text
 
@@ -9182,9 +9394,9 @@ def load_soft_list(force: bool = True, retry_count: int = 0):
             time.sleep(2 * retry_count + 1)
 
         cloudUrl = '{}/api/panel/getSoftListEn'.format(OfficialApiBase())
-        import panelAuth
+        from panel_auth_v2 import panelAuth
         import requests
-        pdata = panelAuth.panelAuth().create_serverid(None)
+        pdata = panelAuth().create_serverid(None)
         url_headers = {
             'user-agent': 'aaPanel/1.0',
         }
@@ -9256,20 +9468,44 @@ def load_soft_list(force: bool = True, retry_count: int = 0):
 
     return plugin_list_data
 
-
+# ======================== 获取节点, 统一风格入口 ============================
 # 官网API根地址
 def OfficialApiBase():
-    return 'https://www.aapanel.com'
-    # return 'http://dev.aapanel.com'
+    return smart_get_node()
+
+# 官网API服务接口地址
+def OfficialApiUrlBase():
+    return get_reachable_url(smart_get_node("api_base"))
 
 # 部分插件下载地址
-def sync_plugin_OfficialApiBase():
-    return 'https://download.aapanel.com'
+def SyncPluginOfficialApiBase():
+    return smart_get_node("plugin_base")
 
 # 官网下载根地址
 def OfficialDownloadBase():
-    return 'https://node.aapanel.com'
+    return get_reachable_url(smart_get_node("download_base"))
 
+def OfficialGetErrorBase():
+    return smart_get_node('geterror_base')
+
+# WAFapi
+def OfficialWafBase():
+    return smart_get_node('waf_base')
+
+# WAFapi2
+def OfficialWaf2Base():
+    return smart_get_node('waf2_base')
+
+# w check
+def OfficialWCheckBase():
+    return smart_get_node('w-check_base')
+
+# WEBshell
+def OfficialWebShellCheckBase():
+    return smart_get_node('webshellcheck_base')
+
+
+# ======================== 获取节点 End ============================
 
 # 获取安装路径
 def get_setup_path():
@@ -9830,9 +10066,9 @@ def progress_acquire_lock(lock_file):
                     if os.path.exists(lock_file):
                         os.remove(lock_file)
 
-        # 创建新锁文件并写入当前线程ID
+        # 创建新锁文件并写入当前线程ID（原子操作，避免空窗口期）
         with open(lock_file, 'w') as f:
-            f.write('')
+            f.write(str(threading.get_ident()))
             f.flush()
             os.fsync(f.fileno())  # 确保写入磁盘
         return True
@@ -10444,3 +10680,20 @@ def replace_conf_without_sub(text, old, new):
         block_start="#Subdirectory-configuration-start",
         block_end="#Subdirectory-configuration-end"
     )
+
+def get_secret_key():
+    secret_key_file = get_panel_path() + "/data/panel_secret_key.json"
+    if os.path.exists(secret_key_file):
+        try:
+            data = readFile(secret_key_file)
+            if data:
+                data_dict = json.loads(data)
+                if "secret_key" in data_dict and data_dict["secret_key"]:
+                    return data_dict["secret_key"]
+        except:
+            secret_key = GetRandomString(64)+get_mac_address()
+            writeFile(secret_key_file, json.dumps({"secret_key": secret_key}))
+            return secret_key
+    secret_key = GetRandomString(64)+get_mac_address()
+    writeFile(secret_key_file, json.dumps({"secret_key": secret_key}))
+    return secret_key

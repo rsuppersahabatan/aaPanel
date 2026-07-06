@@ -25,6 +25,7 @@ from typing import Optional, Tuple
 
 import psutil
 
+
 try:
     import ujson as json
 except ImportError:
@@ -797,8 +798,9 @@ def project_daemon_service():
 # 重启面板服务
 def restart_panel():
     def service_panel(action='reload'):
+        from public import OfficialDownloadBase
         if not os.path.exists('{}/init.sh'.format(BASE_PATH)):
-            os.system("curl -k https://node.aapanel.com/install/update_7.x_en.sh|bash &")
+            os.system(f"curl -k {OfficialDownloadBase()}/install/update_panel_en.sh|bash &")
         else:
             os.system("nohup bash /www/server/panel/init.sh {} > /dev/null 2>&1 &".format(action))
         logger.info("Panel Service: {}".format(action))
@@ -1323,6 +1325,28 @@ def task_version_part():
     task_ExecShell("task_version_part")
 
 
+def node_failover_recovery():
+    """恢复探测唯一入口(常驻跨进程可靠)"""
+    try:
+        from public.common import _load_state, _try_recover_to_primary, NODES_CONFIG
+        for node_type in list(_load_state().keys()):
+            if node_type not in NODES_CONFIG:
+                continue
+            _try_recover_to_primary(node_type)
+    except Exception:
+        pass
+
+
+_auto_dream_boot_run = False
+
+def auto_dream():
+    """睡梦"""
+    global _auto_dream_boot_run
+    if not _auto_dream_boot_run:
+        _auto_dream_first_run = True
+        return
+    task_ExecShell("auto_dream")
+
 # ================================ 这是任务分割线 ===============================
 
 
@@ -1347,11 +1371,13 @@ TASKS = [
     {"func": check502Task, "interval": 60 * 10},  # 每10分钟 502检查(夹杂若干任务)
     {"func": check_site_monitor, "interval": 60 * 10},  # 每10分钟检查站点安装监控
     {"func": node_monitor, "interval": 60},  # 每1分钟节点监控任务
+    {"func": node_failover_recovery, "interval": 60},  # 每60s节点容灾恢复兜底(跨进程)
     {"func": node_monitor_check, "interval": 60 * 60 * 24 * 30},  # 每月节点监控检测任务
     {"func": update_waf_config, "interval": 60 * 20},  # 每隔20分钟更新一次waf报表数据
     {"func": update_monitor_requests, "interval": 60 * 20},  # 每隔20分钟更新一次网站报表数据
 
-    {"func": find_favicons, "interval": 43200},  # 每12小时找favicons
+    {"func": find_favicons, "interval": 60 * 60 * 12},  # 每12小时找favicons
+    {"func": auto_dream, "interval": 60 * 60 * 8},  # 每8小时睡梦(一天3次探测, 机制内24h节流+闲时, 实际24h~48h一次)
     {"func": domain_ssl_service, "interval": 3600},  # 每6小时进行域名SSL服务(内置时间标记, 可提前检查)
     {"func": malicious_file_scanning, "interval": 60 * 60 * 6},  # 每每6小时进行恶意文件扫描
     {"func": count_ssh_logs, "interval": 3600 * 24},  # 每天统计SSH登录日志

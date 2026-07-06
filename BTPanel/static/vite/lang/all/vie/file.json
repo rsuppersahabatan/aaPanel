@@ -576,5 +576,6 @@
 	"9340c69bbad03887fd170a8884ec7081": "Hủy yêu thích",
 	"067d2d3df94c6b5a34b93a9ccabf7fed": "Hủy yêu thích cho [{name}], tiếp tục?",
 	"95c6415b77c2132d3abd45cd8d93cbc3": "Sự quản lý",
-	"3131239f467b2405cc5ba4e5bcc182b3": "Vui lòng nhập đường dẫn"
+	"3131239f467b2405cc5ba4e5bcc182b3": "Vui lòng nhập đường dẫn",
+	"4be6ecea6c4c14e13a4d9ac2cac97fba": "Đang truyền tệp [{0}], nếu tệp tồn tại, tệp sẽ bị ghi đè. Tiếp tục?"
 }

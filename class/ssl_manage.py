@@ -432,7 +432,7 @@ class SSLManger:
         AES = AesCryptPy3(key, "CBC", iv, char_set="utf8")
 
         # 对接云端
-        url = "https://wafapi2.aapanel.com/api/Cert_cloud_deploy/get_cert_list"
+        url = f"{public.OfficialWaf2Base()}/api/Cert_cloud_deploy/get_cert_list"
         try:
             res_text = public.httpPost(url, {
                 "uid": user_info["uid"],
@@ -630,7 +630,7 @@ class SSLManger:
             ssl_db.connection().delete(id=target["id"])
 
         if target["cloud_id"] != -1:
-            url = "https://wafapi2.aapanel.com/api/Cert_cloud_deploy/del_cert"
+            url = f"{public.OfficialWaf2Base()}/api/Cert_cloud_deploy/del_cert"
             try:
                 res_text = public.httpPost(url, {
                     "cert_id": target["cloud_id"],
@@ -677,7 +677,7 @@ class SSLManger:
         data["privateKey"] = AES.aes_encrypt(data["privateKey"])
         data["certificate"] = AES.aes_encrypt(data["certificate"])
         # 对接云端
-        url = "https://wafapi2.aapanel.com/api/Cert_cloud_deploy/cloud_deploy"
+        url = f"{public.OfficialWaf2Base()}/api/Cert_cloud_deploy/cloud_deploy"
 
         try:
             res_text = public.httpPost(url, data)

@@ -518,7 +518,7 @@ class ServicesHelper:
             if self.nick_name == "panel":
                 if not os.path.exists(f"{SETUP_PATH}/panel/init.sh"):
                     from public import get_url
-                    os.system(f"curl -k {get_url()}/install/update_7.x_en.sh|bash &")
+                    os.system(f"curl -k {get_url()}/install/update_panel_en.sh|bash &")
                 cmd = ["bash", bash_path, act]
 
             elif self.nick_name == "pdns":

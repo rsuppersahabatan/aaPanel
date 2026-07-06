@@ -876,7 +876,9 @@
 			"config_205": "Çevrimiçi Düzenle [{0}]",
 			"config_206": "Kuralı düzenle [{0}]",
 			"config_207": "Çerezleri kullanan sızma saldırılarını filtrele",
-			"config_208": "Yaygın tarama test araçları için sızma testini filtrele"
+			"config_208": "Yaygın tarama test araçları için sızma testini filtrele",
+			"config_209": "Salt Okunur Mod",
+			"config_210": "Salt okunur mod. Saldırı ve savunma tatbikatları dışında etkinleştirmeyin. Giriş, ödeme, arama, kayıt, yorumlar ve diğer özellikler etkilenebilir."
 		},
 		"Install": {
 			"index_1": "İpucu: Bu sayfa panel ayarlarından kapatılabilir",
@@ -888,6 +890,65 @@
 			"index_7": "Hackerları durdur",
 			"index_8": "Şimdi Yükle",
 			"index_9": "Şimdi Satın Al"
+		},
+		"ProtectionScreen": {
+			"defaultTitle": "aaPanel WAF Panosu",
+			"setting": {
+				"title": "Pano Ayarları",
+				"monitorTitle": "Monitör başlığı",
+				"monitorTitlePlaceholder": "Monitör başlığını girin",
+				"serverCoords": "Sunucu koordinatları",
+				"longitude": "Boylam",
+				"longitudePlaceholder": "Boylam girin, örn. 116.395645",
+				"latitude": "Enlem",
+				"latitudePlaceholder": "Enlem girin, örn. 39.929986",
+				"currentCoords": "Koordinatlar",
+				"locationTip": "Konum yalnızca referans içindir ve doğru olmayabilir.",
+				"titleRequired": "Monitör başlığını girin",
+				"saveFailed": "Kaydetme başarısız",
+				"invalidCoords": "Geçerli boylam ve enlem girin",
+				"saveSuccess": "Başarıyla kaydedildi"
+			},
+			"stats": {
+				"todayRequests": "Bugünkü istekler",
+				"maliciousRequests": "Kötü amaçlı istekler",
+				"totalIntercepts": "Toplam engel",
+				"todayIntercepts": "Bugünkü engeller"
+			},
+			"actions": {
+				"countdownRefresh": "Geri sayımlı yenileme",
+				"countdown": "Geri sayım",
+				"fullscreen": "Tam ekran",
+				"setting": "Ayarlar"
+			},
+			"realtime": {
+				"title": "Canlı Web Savunması",
+				"empty": "Gerçek zamanlı koruma verisi yok"
+			},
+			"attackDetail": {
+				"attackIp": "Saldırı IP",
+				"attackType": "Tür: ",
+				"domain": "Alan adı: ",
+				"time": "Zaman: ",
+				"empty": "Saldırı ayrıntısı yok"
+			},
+			"chart": {
+				"realtimeQps": "Gerçek zamanlı QPS",
+				"time": "Zaman",
+				"qps": "QPS",
+				"sevenDayTrend": "7 günlük engeller",
+				"attackTime": "Saldırı zamanı",
+				"attackCount": "Saldırı sayısı",
+				"interceptTypeToday": "Engel türleri",
+				"pieValue": "{0} kez, {1}%",
+				"noInterceptDataToday": "Bugün engel verisi yok"
+			},
+			"map": {
+				"country": "Ülke",
+				"count": "Sayı",
+				"ipTotal": "Toplam IP",
+				"unknown": "Bilinmeyen"
+			}
 		},
 		"Api": {
 			"overview_1": "Tek tıkla etkinleştirme devam ediyor, lütfen bekleyin...",

@@ -201,6 +201,35 @@
       "open": "打开",
       "decompress": "解压"
     },
+    "cloudStorageTransfer": {
+      "allFilesSkipped": "已跳过所有文件",
+      "createFolder": "创建文件夹",
+      "deleteConfirm": "确定要删除{0} [{1}]吗？",
+      "deleteFile": "删除文件",
+      "downloadConfirm": "确定要将 [{0}] 发送到左侧吗？",
+      "file": "文件",
+      "folderName": "文件夹名称",
+      "folderNamePlaceholder": "输入文件夹名称",
+      "folder": "文件夹",
+      "localFiles": "本地文件",
+      "overwriteRiskConfirm": "传送 [{0}] 文件，如果文件存在将会被覆盖，是否继续？",
+      "rootDirectoryCannotUpload": "根目录无法上传文件",
+      "searchPlaceholder": "输入文件名称",
+      "sendToLeft": "发送到左侧",
+      "sendToRight": "发送到右侧",
+      "taskPreparing": "任务准备中...",
+      "taskStep": "步骤 {0}",
+      "transferComplete": "传输完成",
+      "transferFailed": "传输失败",
+      "transferInProgress": "正在传输，请稍候...",
+      "transferProgress": "传输进度",
+      "uploadCanceled": "上传已取消：{0}",
+      "uploadFailed": "上传失败",
+      "uploadFilesTo": "上传文件到 [{0}]",
+      "uploadFolder": "上传文件夹",
+      "uploadFolderConfirm": "文件夹 [{0}] 会先被压缩成一个压缩包后再上传，是否继续？",
+      "fileUploadFailed": "{0} 上传失败"
+    },
     "contextMenu": {
       "archivePreview": "ZIP/GZ压缩预览",
       "archivePreviewWithType": "{type}压缩预览",
@@ -221,6 +250,13 @@
       "fileSync": "文件同步",
       "malwareScan": "木马扫描",
       "createCopy": "创建副本",
+      "uploadToCloud": "上传到云存储",
+      "cloudStorage": {
+        "ftp": "FTP存储",
+        "awsS3": "AWS S3 存储",
+        "gdrive": "谷歌硬盘",
+        "gcloudStorage": "谷歌云存储"
+      },
       "loading": {
         "batchSetting": "批量设置中，请稍候...",
         "copying": "复制中，请稍候...",
@@ -233,7 +269,8 @@
       "messages": {
         "addedToFavorites": "成功添加到收藏夹",
         "copySuccess": "复制成功，请点击[粘贴]或按Ctrl+V粘贴",
-        "cutSuccess": "剪切成功，请点击[粘贴]或按Ctrl+V粘贴"
+        "cutSuccess": "剪切成功，请点击[粘贴]或按Ctrl+V粘贴",
+        "cloudUploadNotConnected": "上传到云存储功能暂未接入"
       },
       "defaultNames": {
         "untitledFile": "未命名文件",

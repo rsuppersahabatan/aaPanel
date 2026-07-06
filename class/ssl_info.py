@@ -144,14 +144,43 @@ class ssl_info:
         # 取申请时间
         result['notBefore'] = self.strf_date(
             bytes.decode(x509.get_notBefore())[:-1])
-        # 取可选名称
+        # 取可选名称 - 使用cryptography稳定解析
         result['dns'] = []
-        for i in range(x509.get_extension_count()):
-            s_name = x509.get_extension(i)
-            if s_name.get_short_name() in [b'subjectAltName', 'subjectAltName']:
-                s_dns = str(s_name).split(',')
-                for d in s_dns:
-                    result['dns'].append(d.split(':')[1])
+        try:
+            from cryptography.x509 import load_pem_x509_certificate
+            from cryptography.hazmat.backends import default_backend
+            from cryptography.x509.oid import ExtensionOID
+            cert_obj = load_pem_x509_certificate(pem_data.encode(), default_backend())
+            try:
+                san_ext = cert_obj.extensions.get_extension_for_oid(
+                    ExtensionOID.SUBJECT_ALTERNATIVE_NAME
+                )
+                dns_list = []
+                for dns in san_ext.value:
+                    val = dns.value
+                    if isinstance(val, bytes):
+                        try:
+                            import ipaddress
+                            val = str(ipaddress.ip_address(val))
+                        except Exception:
+                            val = val.decode('utf-8', errors='ignore')
+                    elif not isinstance(val, str):
+                        val = str(val)
+                    dns_list.append(val)
+                result['dns'] = dns_list
+            except Exception:
+                pass
+        except Exception:
+            # fallback
+            try:
+                for i in range(x509.get_extension_count()):
+                    s_name = x509.get_extension(i)
+                    if s_name.get_short_name() in [b'subjectAltName', 'subjectAltName']:
+                        s_dns = str(s_name).split(',')
+                        for d in s_dns:
+                            result['dns'].append(d.split(':')[1])
+            except:
+                pass
         subject = x509.get_subject().get_components()
         # 取主要认证名称
         if len(subject) == 1:

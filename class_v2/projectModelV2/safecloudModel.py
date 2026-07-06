@@ -427,7 +427,7 @@ class CloudDetector(WebshellDetector):
             return True
 
         try:
-            ret = requests.get('https://webshellcheck.aapanel.com/checkWebShell.php').json()
+            ret = requests.get(f'{public.OfficialWebShellCheckBase()}/checkWebShell.php').json()
             if ret['status'] and ret['url']:
                 self.check_url = ret['url']
                 self.last_check_time = current_time
@@ -578,7 +578,7 @@ class SafeCloudModel:
     # 恶意文件 云端上报配置[目前不给支持]
     def __init__(self):
         self.upload_config = {
-            'url': 'https://w-check.aapanel.com/upload_web.php',
+            'url': f'{public.OfficialWCheckBase()}/upload_web.php',
             'max_file_size': 2 * 1024 * 1024,  # 最大文件大小限制(1MB)
             'max_daily_uploads': 50,  # 每日最大上报数量
             'min_upload_interval': 300,  # 最小上报间隔(秒)
@@ -2347,7 +2347,7 @@ class main(projectBase):
         '''
         try:
 
-            ret = requests.get('https://webshellcheck.aapanel.com/checkWebShell.php').json()
+            ret = requests.get(f'{public.OfficialWebShellCheckBase()}/checkWebShell.php').json()
             # public.print_log("|====ret:".format(ret))
             if ret['status']:
                 return ret['url']

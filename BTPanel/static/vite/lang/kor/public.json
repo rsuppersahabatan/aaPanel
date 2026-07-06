@@ -88,6 +88,9 @@
 			"Enable": "허용",
 			"Disable": "비허용"
 		},
+		"AlarmTask": {
+			"ConfigurationTask": "경고 작업 구성"
+		},
 		"Table": {
 			"Ps": "순서",
 			"Status": "상태",
@@ -110,6 +113,7 @@
 			"Disable": "비허용",
 			"Running": "실행중",
 			"Stopped": "중지됨",
+			"NotConfigured": "구성되지 않음",
 			"Paused": "일시중지",
 			"TurnOn": "켜기",
 			"TurnOff": "끄기",

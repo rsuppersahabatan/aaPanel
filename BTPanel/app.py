@@ -16,6 +16,7 @@ import time
 import re
 import uuid
 import psutil
+import urllib.parse
 
 panel_path = '/www/server/panel'
 if not os.name in ['nt']:
@@ -307,6 +308,15 @@ def get_phpmyadmin_dir():
             if filename[0:10] == 'phpmyadmin':
                 return str(filename), phpport
     return None
+
+
+def build_phpmyadmin_proxy_url(panel_pool, port, pma_dir, path_full=None):
+    path = urllib.parse.quote((path_full or 'index.php').lstrip('/'), safe="/:@!$&'()*+,;=-._~")
+    proxy_url = '{}127.0.0.1:{}/{}/{}'.format(panel_pool, port, pma_dir, path)
+    query_string = request.query_string.decode('latin-1')
+    if query_string:
+        proxy_url += '?' + query_string
+    return proxy_url
 
 
 class run_exec:

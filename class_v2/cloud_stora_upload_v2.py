@@ -547,7 +547,10 @@ class CloudStoraUpload:
         :return: True/False
         """
         try:
-            return self.obj.resumable_upload(file_name, object_name=upload_path, *args, **kwargs)
+            result = self.obj.resumable_upload(file_name, object_name=upload_path, *args, **kwargs)
+            if isinstance(result, dict):
+                return result.get('status', False)
+            return result
         except Exception as _:
             return False
 

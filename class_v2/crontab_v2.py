@@ -1248,6 +1248,8 @@ WantedBy=timers.target
             timer_path = f"/etc/systemd/system/{systemd_task_name}.timer"  # 定时器文件
 
             # 生成 systemd 服务文件
+            kill_mode = get.get('kill_mode', '')
+            kill_mode_line = f'KillMode={kill_mode}\n' if kill_mode else ''
             service_content = f"""[Unit]
 Description=Once crontab task: {public.xssencode2(systemd_task_name)}
 After=network.target
@@ -1255,8 +1257,7 @@ After=network.target
 [Service]
 Type=oneshot
 User=root
-
-ExecStart=/bin/bash -c '{scriptPath} >> {logPath} 2>&1'
+{kill_mode_line}ExecStart=/bin/bash -c '{scriptPath} >> {logPath} 2>&1'
 TimeoutSec=3600
             """
 
@@ -1418,10 +1419,17 @@ WantedBy=timers.target
                     pass
         data['orderOpt'] = []
         import json
-        tmp = public.readFile('data/libList.conf')
+        panel_path = public.get_panel_path()
+        tmp = public.readFile(os.path.join(panel_path, 'data/libList.conf'))
         if not tmp: return data
         libs = json.loads(tmp)
         cloud_storage_info = [x for x in CLOUD_STORAGE]
+
+        def has_config(target):
+            if not os.path.exists(target):
+                return False
+            body = public.readFile(target)
+            return isinstance(body, str) and bool(body.strip())
 
         for lib in cloud_storage_info: # 预配置
             if_exist = next(
@@ -1431,13 +1439,16 @@ WantedBy=timers.target
                 lib = if_exist
             if not 'opt' in lib:
                 continue
-            filename = 'plugin/{}'.format(lib['opt'])
-            cfg = os.path.join(filename, 'config.conf')
 
-            if lib.get('name') != 'Google Cloud Storage':
+            if lib.get('name') == 'gcloud' or lib.get('name') == 'Google Cloud Storage':
+                shop_name = 'gcloud_storage' # 处理gcloud商店名不一致
+                cfg_file = 'google.json' # 处理gcloud 配置名不一致
+            else:
                 shop_name = lib.get('opt', '')
-            else:  # 处理gcloud商店名不一致
-                shop_name = 'gcloud_storage'
+                cfg_file = 'config.conf'
+
+            filename = os.path.join(panel_path, 'plugin', shop_name)
+            cfg = os.path.join(filename, cfg_file)
 
             tmp = {
                 'name': lib['name'],
@@ -1448,18 +1459,21 @@ WantedBy=timers.target
             if os.path.exists(filename):
                 tmp['install'] = True
 
-            if lib.get('name', '') != 'FTP Storage':
-                if os.path.exists(cfg) and isinstance(public.readFile(cfg), str):
+            if shop_name == 'gcloud_storage':
+                bucket_cfg = os.path.join(filename, 'bucket_name.conf')
+                if all(has_config(target) for target in [cfg, bucket_cfg]):
+                    tmp['config'] = True
+            elif lib.get('name', '') != 'FTP Storage':
+                if has_config(cfg):
                     tmp['config'] = True
             else:  # 处理ftp 三种cfg
                 for cfg_file in [
                     'config.conf', 'ftp.config.conf', 'sftp.config.conf'
                 ]:
                     target = os.path.join(filename, cfg_file)
-                    if os.path.exists(target) and isinstance(public.readFile(target), str):
+                    if has_config(target):
                         tmp['config'] = True
                         break
-
             data['orderOpt'].append(tmp)
         return public.return_message(0,0,data)
 
@@ -2257,9 +2271,9 @@ rm -f {cronFile}
             with open('/tmp/cron_task_data.json', 'w') as f:
                 f.write(json_data)
             
-            return public.returnMsg(True, public.lang("/tmp/cron_task_data.json"))
+            return public.return_message(0, 0, "/tmp/cron_task_data.json")
         except Exception as e:
-            return public.returnMsg(False, public.lang("Export failed:" + str(e)))
+            return public.return_message(-1, 0, public.lang("Export failed:" + str(e)))
 
 
     def import_crontab_from_json(self, get):
@@ -2309,7 +2323,7 @@ rm -f {cronFile}
                             new_task[key] = task.get(key, '')
                     new_task['result'] = 1  # 设置默认 result 为 1
                     result = self.AddCrontab(new_task)
-                    if result.get('status', False):
+                    if result.get('status', -1) == 0:
                         successful_imports += 1
                         successful_tasks.append(task['name'])  
                     else:
@@ -2317,18 +2331,17 @@ rm -f {cronFile}
 
                 message = public.lang("Successfully imported {} scheduled tasks",str(successful_imports))
                 result = {
-                    "status": True,
                     "msg": message,
                     "skipped_tasks": skipped_tasks,
                     "failed_tasks": failed_tasks,
                     "successful_tasks": successful_tasks  
                 }
-                return result
+                return public.return_message(0, 0,  result)
 
             else:
-                return public.returnMsg(False, public.lang("Please choose to import the file!"))
+                return public.return_message(-1, 0, public.lang("Please choose to import the file!"))
         except Exception as e:
-            return public.returnMsg(False, public.lang("Import failed! {0}",str(e)))
+            return public.return_message(-1, 0, public.lang("Import failed! {0}",str(e)))
 
     def stop_cron_task(self, cronPath, cronName, if_stop):
         cronFile = '{}/{}.pl'.format(cronPath,cronName)

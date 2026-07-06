@@ -3354,6 +3354,8 @@ fullchain.pem       Paste into certificate input box
                     continue
                 continue
             write_log(f"|- Domain Subject:【{ssl.subject}】Trying to use DNS Verification for Renewal!")
+            # dns 续签成功会销毁旧 ssl, 后续判断用快照
+            ssl_snapshot = {"user_for": dict(ssl.user_for or {}), "subject": ssl.subject, "hash": ssl.hash}
             try:
                 dns_apply = self.apply_cert_domain(
                     domains=ssl.dns,
@@ -3364,14 +3366,16 @@ fullchain.pem       Paste into certificate input box
                 )
                 if dns_apply.get("status"):
                     write_log(
-                        f"|- Domain Subject:【{ssl.subject}】DNS Verification "
+                        f"|- Domain Subject:【{ssl_snapshot['subject']}】DNS Verification "
                         f"Renewal SSL certificate Successfully!"
                     )
+                    # 类sub_all_cert: 面板证书续签后部署到面板SSL目录
+                    self._deploy_panel_after_renew(self._renewed_ssl_of(dns_apply), ssl_snapshot)
                 else:
                     raise Exception(dns_apply.get("msg"))
             except Exception as e:
                 write_log(
-                    f"|- Domain Subject:【{ssl.subject}】DNS Verification "
+                    f"|- Domain Subject:【{ssl_snapshot['subject']}】DNS Verification "
                     f"Renewal SSL certificate Failed:{str(e)}"
                 )
                 if self.http_fallback_renew(ssl):
@@ -3386,8 +3390,13 @@ fullchain.pem       Paste into certificate input box
         """HTTP-01 最终兜底续签"""
         if any("*." in d for d in ssl.dns):
             return False
+        ssl_snapshot = {
+            "user_for": dict(ssl.user_for or {}),
+            "subject": ssl.subject,
+            "hash": ssl.hash,
+        }
         write_log(
-            f"|- Domain Subject:【{ssl.subject}】Trying HTTP-01 fallback verification..."
+            f"|- Domain Subject:【{ssl_snapshot['subject']}】Trying HTTP-01 fallback verification..."
         )
         try:
             from ssl_domainModelV2.service import HttpFallback
@@ -3400,21 +3409,44 @@ fullchain.pem       Paste into certificate input box
                 )
                 if http_res.get("status"):
                     write_log(
-                        f"|- Domain Subject:【{ssl.subject}】HTTP-01 fallback ({mode}) "
+                        f"|- Domain Subject:【{ssl_snapshot['subject']}】HTTP-01 fallback ({mode}) "
                         f"renewal SSL certificate successfully!"
                     )
+                    renewed_ssl = self._renewed_ssl_of(http_res)
                     # 仅 webroot 模式保存 auth_info（站点路径持久可用）
-                    if mode == "webroot":
-                        ssl.auth_info = {"auth_type": "http", "auth_to": auth_to}
-                        ssl.save()
+                    if mode == "webroot" and renewed_ssl:
+                        renewed_ssl.auth_info = {"auth_type": "http", "auth_to": auth_to}
+                        renewed_ssl.save()
+                    # 类sub_all_cert: 面板证书续签后部署到面板SSL目录
+                    self._deploy_panel_after_renew(renewed_ssl, ssl_snapshot)
                     return True
                 else:
                     raise Exception(http_res.get("msg"))
             finally:
                 fallback.cleanup()
         except Exception as e:
-            write_log(f"|- Domain Subject:【{ssl.subject}】HTTP-01 fallback failed: {str(e)}")
+            write_log(f"|- Domain Subject:【{ssl_snapshot['subject']}】HTTP-01 fallback failed: {str(e)}")
         return False
+
+    def _renewed_ssl_of(self, apply_res: dict):
+        """按 apply_cert_domain 返回的新证书算 hash, 定位续签后的新记录; 旧 ssl 可能已被 keep_same_dns_ssl_unique 销毁"""
+        from ssl_domainModelV2.model import DnsDomainSSL
+        from ssl_domainModelV2.service import CertHandler
+        new_hash = CertHandler.get_hash(
+            (apply_res.get("cert") or "") + (apply_res.get("root") or "")
+        )
+        return DnsDomainSSL.objects.filter(hash=new_hash).first() if new_hash else None
+
+    def _deploy_panel_after_renew(self, renewed_ssl, ssl_snapshot: dict):
+        """续签成功后部署面板证书; 站点/邮件由 sub_all_cert 自动替换, 仅 panel 需显式部署"""
+        if ssl_snapshot["user_for"].get("panel") != ["panel"]:
+            return
+        if renewed_ssl and renewed_ssl.hash != ssl_snapshot["hash"]:
+            renewed_ssl.deploy_panel()
+            write_log(
+                f"|- Domain Subject:【{ssl_snapshot['subject']}】Panel SSL "
+                f"certificate deployed successfully!"
+            )
 
     def apply_cert_domain(
             self,

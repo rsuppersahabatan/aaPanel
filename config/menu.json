@@ -91,52 +91,59 @@
     "sort": 12
   },
   {
+    "title": "AI",
+    "href": "/ai",
+    "class": "menu_ai",
+    "id": "memu_ai",
+    "sort": 13
+  },
+  {
     "title": "Domains",
     "href": "/ssl_domain",
     "class": "menu_domains",
     "id": "memuDomains",
-    "sort": 13
+    "sort": 14
   },
   {
     "title": "Terminal",
     "href": "/xterm",
     "class": "menu_xterm",
     "id": "memuAxterm",
-    "sort": 14
+    "sort": 15
   },
   {
     "title": "Account",
     "href": "/whm",
     "class": "menu_account",
     "id": "memuAccount",
-    "sort": 15
+    "sort": 16
   },
   {
     "title": "Cron",
     "href": "/crontab",
     "class": "menu_day",
     "id": "memuAcrontab",
-    "sort": 16
+    "sort": 17
   },
   {
     "title": "App Store",
     "href": "/soft",
     "class": "menu_soft",
     "id": "memuAsoft",
-    "sort": 17
+    "sort": 18
   },
   {
     "title": "Settings",
     "href": "/config",
     "class": "menu_set",
     "id": "memuAconfig",
-    "sort": 18
+    "sort": 19
   },
   {
     "title": "Log out",
     "href": "/login?dologin=True",
     "class": "menu_exit",
     "id": "dologin",
-    "sort": 19
+    "sort": 20
   }
 ]

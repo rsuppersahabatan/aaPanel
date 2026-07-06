@@ -81,6 +81,17 @@ def control_init_new():
 
 def install_packages():
     try:
+        import openai
+    except ImportError:
+        public.ExecShell("btpip install pydantic==2.5.3 openai==1.39.0")
+        import openai
+    try:
+        import numpy as np
+    except ImportError:
+        public.ExecShell("btpip install numpy==1.21.6")
+        import numpy
+
+    try:
         import dns.resolver
     except ImportError:
         public.ExecShell(f"{public.get_panel_path()}/pyenv/bin/pip3 install dnspython")
@@ -351,6 +362,10 @@ def sql_pacth():
     # 添加子站点区分字段,parent_id： -1 空主站，0 主站 ，其他子站
     if not public.M('sqlite_master').where('type=? AND name=? AND sql LIKE ?', ('table', 'sites','%parent_id%')).count():
         public.M('sites').execute("alter TABLE sites add parent_id STRING DEFAULT 0",())
+
+    # 添加备份类型字段，0为标准类型，1为全量备份
+    if not public.M('sqlite_master').where('type=? AND name=? AND sql LIKE ?', ('table', 'backup','%backup_type%')).count():
+        public.M('backup').execute("alter TABLE backup add backup_type STRING DEFAULT 0",())
 
     if not public.M('sqlite_master').where('type=? AND name=? AND sql LIKE ?', ('table', 'backup','%ps%')).count():
         public.M('backup').execute("alter TABLE backup add ps STRING DEFAULT 'No'",())
@@ -1032,7 +1047,7 @@ def update_py312():
     download_url = public.get_url()
     only_update_pyenv312 = '/tmp/only_update_pyenv312.pl'
     public.writeFile(only_update_pyenv312, 'True')
-    public.ExecShell("nohup curl -k {}/install/update_7.x_en.sh|bash &>/tmp/panelUpdate.pl &".format(download_url))
+    public.ExecShell("nohup curl -k {}/install/update_panel_en.sh|bash &>/tmp/panelUpdate.pl &".format(download_url))
     return True
 
 def test_ping():

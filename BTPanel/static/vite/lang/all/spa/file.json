@@ -576,5 +576,6 @@
 	"9340c69bbad03887fd170a8884ec7081": "Cancelar favorito",
 	"067d2d3df94c6b5a34b93a9ccabf7fed": "Cancelar el favorito de [{name}], ¿continuar?",
 	"95c6415b77c2132d3abd45cd8d93cbc3": "Gestión",
-	"3131239f467b2405cc5ba4e5bcc182b3": "Por favor ingrese la ruta"
+	"3131239f467b2405cc5ba4e5bcc182b3": "Por favor ingrese la ruta",
+	"4be6ecea6c4c14e13a4d9ac2cac97fba": "Transferir el archivo [{0}], si el archivo existe, se sobrescribirá. ¿Continuar?"
 }

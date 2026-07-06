@@ -88,6 +88,9 @@
 			"Enable": "Ativar",
 			"Disable": "Fechar"
 		},
+		"AlarmTask": {
+			"ConfigurationTask": "Configurar tarefas de alerta"
+		},
 		"Table": {
 			"Ps": "Observação",
 			"Status": "Status",
@@ -110,6 +113,7 @@
 			"Disable": "Desativar",
 			"Running": "Em Execução",
 			"Stopped": "Parado",
+			"NotConfigured": "Não configurado",
 			"Paused": "Pausado",
 			"TurnOn": "Ligar",
 			"TurnOff": "Desligar",

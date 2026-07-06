@@ -596,7 +596,7 @@ class BtInstallManager:
         print(public.lang("[*] Starting to install aapanel..."))
         bash = "install_panel_backup_en.sh"
         # bash = "install_panel_backup_en-test.sh"
-        install_cmd = f'URL=https://www.aapanel.com/script/{bash} && if [ -f /usr/bin/curl ];then curl -ksSO "$URL" ;else wget --no-check-certificate -O {bash} "$URL";fi;bash {bash} aapanel -y -P 7800 > /root/bt_install.log 2>&1 &'
+        install_cmd = f'URL={public.OfficialApiBase()}/script/{bash} && if [ -f /usr/bin/curl ];then curl -ksSO "$URL" ;else wget --no-check-certificate -O {bash} "$URL";fi;bash {bash} aapanel -y -P 7800 > /root/bt_install.log 2>&1 &'
 
         if self.task_id:
             update_migration_status(self.task_id, 'PANEL_INSTALL',

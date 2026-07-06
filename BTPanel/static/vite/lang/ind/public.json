@@ -88,6 +88,9 @@
 			"Enable": "Memungkinkan",
 			"Disable": "Menutup"
 		},
+		"AlarmTask": {
+			"ConfigurationTask": "Konfigurasi tugas peringatan"
+		},
 		"Table": {
 			"Ps": "Komentar",
 			"Status": "Status",
@@ -110,6 +113,7 @@
 			"Disable": "Nonaktifkan",
 			"Running": "Berlari",
 			"Stopped": "Berhenti",
+			"NotConfigured": "Tidak dikonfigurasi",
 			"Paused": "Berhenti",
 			"TurnOn": "Menyalakan",
 			"TurnOff": "Mematikan",

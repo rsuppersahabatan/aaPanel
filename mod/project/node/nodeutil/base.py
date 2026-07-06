@@ -261,6 +261,34 @@ class ServerNode:
             return data, ""
         return None, "data in wrong format: %s" % str(data)
 
+    def get_service_status(self, services) -> Tuple[List[dict], str]:
+        from mod.project.node.nodeutil.monitor_service import normalize_service_targets
+        service_list = [item for item in normalize_service_targets(services) if int(item.get("enabled", 1)) == 1]
+        if not service_list:
+            return [], ""
+        data, err = self._request("/mod/node/monitor/service_status", "", pdata={
+            "services": json.dumps(service_list),
+        })
+        if err:
+            return [], err
+        if isinstance(data, dict) and isinstance(data.get("services"), list):
+            return data["services"], ""
+        if isinstance(data, list):
+            return data, ""
+        if isinstance(data, str):
+            return [], data
+        return [], "data in wrong format: %s" % str(data)
+
+    def get_service_options(self) -> Tuple[Dict[str, list], str]:
+        data, err = self._request("/mod/node/monitor/get_service_options", "", pdata={})
+        if err:
+            return {"services": [], "groups": []}, err
+        if isinstance(data, dict) and isinstance(data.get("services"), list):
+            if not isinstance(data.get("groups"), list):
+                data["groups"] = []
+            return data, ""
+        return {"services": [], "groups": []}, "data in wrong format: %s" % str(data)
+
     def get_tmp_token(self) -> Tuple[str, str]:
         data, err = self._request("/config", "get_tmp_token")
         if err:
@@ -1047,6 +1075,107 @@ class ServerNode:
         return ""
 
 
+def _monitor_setting_enabled(monitor_db, node_id: int) -> bool:
+    try:
+        setting = monitor_db.get_setting(node_id, create=True)
+        return int(setting.get("enabled", 1)) == 1
+    except Exception:
+        if public.is_debug():
+            public.print_error()
+        return False
+
+
+def _monitor_should_save_snapshot(monitor_db, node_id: int) -> bool:
+    try:
+        setting = monitor_db.get_setting(node_id, create=True)
+        if int(setting.get("enabled", 1)) != 1:
+            return False
+        interval = max(int(setting.get("collect_interval", 60)), 60)
+        latest = monitor_db.get_latest(node_id)
+        if latest and int(time.time()) - int(latest.get("ts", 0)) < interval:
+            return False
+        return True
+    except Exception:
+        if public.is_debug():
+            public.print_error()
+        return False
+
+
+def _attach_monitor_service_data(monitor_db, node_id: int, srv, data: dict) -> dict:
+    if not isinstance(data, dict):
+        return data
+    services = []
+    try:
+        services = monitor_db.get_enabled_service_targets(node_id)
+        if not services:
+            data["services"] = []
+            return data
+
+        from mod.project.node.nodeutil.monitor_service import collect_local_service_status, service_unknown_statuses
+        if getattr(srv, "is_local", False):
+            service_data = collect_local_service_status(services)
+        elif hasattr(srv, "get_service_status"):
+            service_data, err = srv.get_service_status(services)
+            if err and not service_data:
+                service_data, err = _get_monitor_service_status_by_saved_ssh(node_id, services)
+            if err and not service_data:
+                service_data = service_unknown_statuses(services, err)
+        else:
+            service_data = service_unknown_statuses(services, "Service status check is not supported")
+        data["services"] = service_data
+    except Exception as e:
+        from mod.project.node.nodeutil.monitor_service import service_unknown_statuses
+        data["services"] = service_unknown_statuses(services, str(e))
+        if public.is_debug():
+            public.print_error()
+    return data
+
+
+def _get_monitor_service_status_by_saved_ssh(node_id: int, services: List[Dict[str, Any]]) -> Tuple[List[dict], str]:
+    try:
+        node_data = public.S('node', public.get_panel_path() + "/data/db/node.db").where("id=?", (int(node_id),)).find()
+        if not isinstance(node_data, dict) or not node_data:
+            return [], "Node does not exist"
+        ssh_conf = node_data.get("ssh_conf", {})
+        if isinstance(ssh_conf, str):
+            ssh_conf = json.loads(ssh_conf or "{}")
+        if not isinstance(ssh_conf, dict) or not ssh_conf:
+            return [], "Service status check is not supported by the remote node"
+        from mod.project.node.nodeutil.ssh_wrap import SSHApi
+        return SSHApi(**ssh_conf).get_service_status(services)
+    except Exception as e:
+        return [], str(e)
+
+
+def _save_monitor_snapshot(node_id: int, srv, data: dict):
+    try:
+        from mod.project.node.dbutil import NodeMonitorDB
+        monitor_db = NodeMonitorDB()
+        if not _monitor_should_save_snapshot(monitor_db, node_id):
+            return
+        data = _attach_monitor_service_data(monitor_db, node_id, srv, data)
+        err = monitor_db.save_node_snapshot(node_id, data, status=1)
+        if err and public.is_debug():
+            public.print_log("Node monitor snapshot save failed: {}".format(err))
+    except Exception:
+        if public.is_debug():
+            public.print_error()
+
+
+def _save_monitor_status(node_id: int, status: int, error_msg: str):
+    try:
+        from mod.project.node.dbutil import NodeMonitorDB
+        monitor_db = NodeMonitorDB()
+        if not _monitor_setting_enabled(monitor_db, node_id):
+            return
+        err = monitor_db.save_latest_status(node_id, status, error_msg)
+        if err and public.is_debug():
+            public.print_log("Node monitor latest status save failed: {}".format(err))
+    except Exception:
+        if public.is_debug():
+            public.print_error()
+
+
 def monitor_all_node_status():
     all_nodes = public.S('node', public.get_panel_path() + "/data/db/node.db").select()
     if not isinstance(all_nodes, list) or not all_nodes:
@@ -1063,6 +1192,14 @@ def monitor_all_node_status():
     # 等待所有线程完成（可选）
     for t in threads:
         t.join()
+    try:
+        from mod.project.node.dbutil import NodeMonitorDB
+        err = NodeMonitorDB().cleanup_expired_snapshots()
+        if err and public.is_debug():
+            public.print_log("Node monitor snapshot cleanup failed: {}".format(err))
+    except Exception:
+        if public.is_debug():
+            public.print_error()
 
 
 def monitor_node_once(node_data: dict):
@@ -1071,6 +1208,11 @@ def monitor_node_once(node_data: dict):
     from mod.base.ssh_executor import test_ssh_config
     try:
         if node_data["app_key"] == "local" and node_data["api_key"] == "local":
+            data = ServerMonitorRepo.get_local_server_status()
+            if data:
+                _save_monitor_snapshot(int(node_data.get("id", 0)), LocalNode(), data)
+            else:
+                _save_monitor_status(int(node_data.get("id", 0)), 2, "Failed to obtain local node data")
             return
         node_data["error"] = json.loads(node_data["error"])
         node_data["ssh_conf"] = json.loads(node_data["ssh_conf"])
@@ -1098,6 +1240,7 @@ def monitor_node_once(node_data: dict):
                 ServerMonitorRepo().remove_cache(node.id)
 
             ServerNodeDB().update_node(node)
+            _save_monitor_status(node.id, 0 if node.error_num >= 2 else 2, err)
 
         else:
             if node.error_num > 0:
@@ -1109,6 +1252,7 @@ def monitor_node_once(node_data: dict):
         if data:
             repo = ServerMonitorRepo()
             repo.save_server_status(node.id, data)
+            _save_monitor_snapshot(node.id, srv, data)
             if repo.is_reboot_wait(node.server_ip):
                 repo.set_wait_reboot(node.server_ip, False)
         if not node_data["ssh_test"] and not node_data["ssh_conf"] and not isinstance(srv, SSHApi):
@@ -1144,6 +1288,12 @@ def monitor_node_once(node_data: dict):
 
 def monitor_node_once_with_timeout(node_data: dict, timeout: int = 5):
     if node_data["app_key"] == "local" and node_data["api_key"] == "local":
+        from mod.project.node.dbutil import ServerMonitorRepo
+        data = ServerMonitorRepo.get_local_server_status()
+        if data:
+            _save_monitor_snapshot(int(node_data.get("id", 0)), LocalNode(), data)
+        else:
+            _save_monitor_status(int(node_data.get("id", 0)), 2, "Failed to obtain local node data")
         return
     from mod.project.node.dbutil import Node, ServerNodeDB, ServerMonitorRepo
     from mod.project.node.nodeutil.ssh_wrap import SSHApi
@@ -1176,6 +1326,7 @@ def monitor_node_once_with_timeout(node_data: dict, timeout: int = 5):
                 ServerMonitorRepo().remove_cache(node.id)
 
             ServerNodeDB().update_node(node)
+            _save_monitor_status(node.id, 0 if node.error_num >= 2 else 2, err)
 
         elif node.error_num > 0:
             node.error_num = 0
@@ -1186,6 +1337,7 @@ def monitor_node_once_with_timeout(node_data: dict, timeout: int = 5):
         if data:
             repo = ServerMonitorRepo()
             repo.save_server_status(node.id, data)
+            _save_monitor_snapshot(node.id, srv, data)
             if repo.is_reboot_wait(node.server_ip):
                 repo.set_wait_reboot(node.server_ip, False)
     except Exception as e:

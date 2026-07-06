@@ -12,6 +12,7 @@
 #------------------------------
 
 import requests,os,re,time
+import urllib.parse
 from BTPanel import request,Response,public,app,get_phpmyadmin_dir,session
 from http.cookies import SimpleCookie
 import requests.packages.urllib3.util.connection as urllib3_conn
@@ -20,6 +21,94 @@ import socket
 
 class HttpProxy:
     _pma_path = None
+    _apsess_token_rep = re.compile(r"^apsess_[A-Za-z0-9]{16,32}$")
+    _internal_hosts = frozenset(("127.0.0.1", "localhost", "::1"))
+
+    @staticmethod
+    def _has_invalid_header_chars(value):
+        return '\r' in value or '\n' in value
+
+    def _get_apsess_path_token(self):
+        token = request.environ.get('bt.apsess_token', '')
+        if self._apsess_token_rep.match(token):
+            return token
+        return ''
+
+    def _get_pma_proxy_path(self):
+        if self._pma_path is None:
+            self._pma_path = get_phpmyadmin_dir()
+            if self._pma_path:
+                self._pma_path = self._pma_path[0]
+            else:
+                self._pma_path = ''
+        return self._pma_path
+
+    @staticmethod
+    def _is_phpmyadmin_proxy_request():
+        return request.path == '/phpmyadmin' or request.path.startswith('/phpmyadmin/') \
+            or request.path == '/v2/phpmyadmin' or request.path.startswith('/v2/phpmyadmin/')
+
+    @staticmethod
+    def _replace_path_prefix(path, old_prefix, new_prefix):
+        if not old_prefix:
+            return path
+        old_path = '/' + old_prefix.strip('/')
+        new_path = '/' + new_prefix.strip('/')
+        if path == old_path:
+            return new_path
+        if path.startswith(old_path + '/'):
+            return new_path + path[len(old_path):]
+        return path
+
+    def _add_apsess_to_proxy_path(self, path):
+        token = self._get_apsess_path_token()
+        if not token:
+            return path
+        token_path = '/' + token
+        if path == token_path or path.startswith(token_path + '/'):
+            return path
+        if path == '/phpmyadmin' or path.startswith('/phpmyadmin/'):
+            return token_path + path
+        return path
+
+    def _rewrite_location_header(self, location):
+        if not location:
+            return location
+        if self._has_invalid_header_chars(location):
+            return None
+
+        try:
+            parts = urllib.parse.urlsplit(location)
+            hostname = parts.hostname
+        except ValueError:
+            return location
+        is_absolute = parts.scheme in ('http', 'https') and hostname in self._internal_hosts
+        is_root_relative = not parts.scheme and not parts.netloc and location.startswith('/') and not location.startswith('//')
+
+        if not is_absolute and not is_root_relative:
+            return location
+
+        path = self._replace_path_prefix(parts.path or '/', self._get_pma_proxy_path(), 'phpmyadmin')
+        path = self._add_apsess_to_proxy_path(path)
+
+        return urllib.parse.urlunsplit(('', '', path, parts.query, parts.fragment))
+
+    def _rewrite_legacy_location_header(self, location):
+        if location.find('phpmyadmin_') != -1:
+            if not self._pma_path:
+                self._pma_path = get_phpmyadmin_dir()
+                if self._pma_path:
+                    self._pma_path = self._pma_path[0]
+                else:
+                    self._pma_path = ''
+            location = location.replace(self._pma_path, 'phpmyadmin')
+
+        if location.find('127.0.0.1') != -1:
+            location = re.sub(r"https?://127.0.0.1(:\d+)?/",request.url_root,location)
+        if request.url_root.find('https://') == 0:
+            location = location.replace('http://','https://')
+        return location
+
     def get_res_headers(self,p_res):
         '''
             @name 获取响应头
@@ -32,20 +121,14 @@ class HttpProxy:
             if h in ['Content-Encoding','Transfer-Encoding']: continue
             headers[h] = p_res.headers[h]
             if h in ['Location']:
-                
-                if headers[h].find('phpmyadmin_') != -1:
-                    if not self._pma_path: 
-                        self._pma_path = get_phpmyadmin_dir()
-                        if self._pma_path: 
-                            self._pma_path = self._pma_path[0]
-                        else:
-                            self._pma_path = ''
-                    headers[h] = headers[h].replace(self._pma_path,'phpmyadmin')
-
-                if headers[h].find('127.0.0.1') != -1:
-                    headers[h] = re.sub(r"https?://127.0.0.1(:\d+)?/",request.url_root,headers[h])
-                if request.url_root.find('https://') == 0:
-                    headers[h] = headers[h].replace('http://','https://')
+                if self._is_phpmyadmin_proxy_request():
+                    rewrite_location = self._rewrite_location_header(headers[h])
+                else:
+                    rewrite_location = self._rewrite_legacy_location_header(headers[h])
+                if rewrite_location is None:
+                    headers.pop(h, None)
+                    continue
+                headers[h] = rewrite_location
         return headers
 
     def set_res_headers(self,res,p_res):
@@ -66,6 +149,10 @@ class HttpProxy:
         #                         expires=expires, httponly=httponly,
         #                         path='/')
         
+        if request.path == '/phpmyadmin' or request.path.startswith('/phpmyadmin/') \
+                or request.path == '/v2/phpmyadmin' or request.path.startswith('/v2/phpmyadmin/'):
+            res.headers['Referrer-Policy'] = 'same-origin'
+
         return res
 
     def get_pma_phpversion(self):

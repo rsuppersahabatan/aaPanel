@@ -897,7 +897,7 @@ class PanelUpdateTask(BaseTask):
         if self.user_can_request_hour() != datetime.now().hour:
             return
         # 面板更新日志  todo 暂时隐藏  后期可改成 ajax?action=UpdatePanel 获取更新日志
-        s_url = 'https://wafapi2.aapanel.com/api/panel/updateLinux'
+        s_url = f'{public.OfficialWaf2Base()}/api/panel/updateLinux'
         try:
             res = json.loads(public_http_post(s_url, {}))
             if not res:

@@ -21,6 +21,8 @@
 		"includeSubdir": "包含子目錄",
 		"uploadFile": "上傳文件",
 		"uploadFolder": "上傳文件夾",
+		"downloadFile": "下載文件",
+		"creating": "正在創建分享，請稍候...",
 		"fileName": "文件名",
 		"fileSize": "文件大小",
 		"fileStatus": "文件狀態",
@@ -28,6 +30,9 @@
 		"permissionUser": "權限/用戶",
 		"size": "大小",
 		"modifyTime": "修改時間",
+		"clear": "清除",
+		"cancel": "取消",
+		"confirm": "確認",
 		"remarks": "備註",
 		"operation": "操作",
 		"pathNotExists": "路徑不存在",
@@ -135,7 +140,7 @@
 			"searchCompleted": "搜尋完成",
 			"contentSummary": "在 {files} 個檔案中有 {matches} 個匹配項",
 			"nameSummary": "搜尋結果，共 {files} 個文件",
-			"linePrefix": "行{行}：",
+			"linePrefix": "行{line}：",
 			"keywordRequired": "請輸入搜尋內容",
 			"pathRequired": "請選擇目錄",
 			"timeRequired": "請選擇時間",
@@ -240,6 +245,9 @@
 				"untitledDirectory": "未命名目錄"
 			}
 		},
+		"cloudStorageTransfer": {
+			"overwriteRiskConfirm": "傳送 [{0}] 文件，如果文件存在將會被覆蓋，是否繼續？"
+		},
 		"pasteConfirm": {
 			"title": "重要文件提示",
 			"operationType": "操作類型",
@@ -275,6 +283,7 @@
 		},
 		"deleteController": {
 			"deleteSingleFileTitle": "刪除文件【{name}】",
+			"deleteFileConfirmWithName": "您真的要刪除文件【{name}】嗎？",
 			"batchDeleteTitle": "批量刪除文件",
 			"recycleBinMessage": "刪除後，文件將遷移至文件回收站，如需徹底刪除請前往文件回收站，是否繼續操作？",
 			"permanentDeleteMessage": "風險操作，當前未開啟文件回收站，刪除後將徹底刪除，無法恢復，是否繼續操作？",
@@ -321,7 +330,7 @@
 			"validation": {
 				"fileNameRequired": "請輸入文件名路徑",
 				"pathRequired": "請輸入解壓地址",
-				"permissionRequired": "請輸入三八擁抱權限"
+				"permissionRequired": "請輸入3位八進制權限"
 			}
 		},
 		"compressionModal": {

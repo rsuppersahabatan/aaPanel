@@ -9,10 +9,10 @@ if "/www/server/panel/class" not in sys.path:
 if "/www/server/panel/class_v2" not in sys.path:
     sys.path.insert(0, "/www/server/panel/class_v2")
 
-from .config import (
+from class_v2.ssl_domainModelV2.config import (
     SPECIAL_PROJECT_TYPE
 )
-from .model import (
+from class_v2.ssl_domainModelV2.model import (
     generate_log,
     get_site_name,
     apply_cert,
@@ -21,7 +21,7 @@ from .model import (
     DnsDomainTask,
     DnsDomainRecord,
 )
-from .service import (
+from class_v2.ssl_domainModelV2.service import (
     sync_user_for,
     SiteHelper,
     CertHandler,

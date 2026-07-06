@@ -240,8 +240,16 @@ class system:
 
         check502 = ''
         if os.path.exists('data/502Task.pl'): check502 = 'checked';
+
+        # 版本ver
+        if os.path.exists('data/is_beta.pl'):
+            version_type = 'Beta'
+        elif os.path.exists('data/panel_pro.pl'):
+            version_type = 'PRO'
+        else: # 正式版
+            version_type = ''
         return {'port': port,'listen_port':listen_port, 'address': address, 'domain': domain, 'auto': autoUpdate, '502': check502, 'limitip': limitip, 'limitarea_status': limitarea_status, 'limitarea': limitarea,
-                'templates': templates, 'template': template, 'admin_path': admin_path}
+                'templates': templates, 'template': template, 'admin_path': admin_path, 'version_type': version_type}
 
 
     def GetPHPConfig(self,version):
@@ -740,11 +748,22 @@ class system:
 
     #检查是否安装任何
     def CheckInstalled(self):
-        checks = ['nginx','apache','php','pure-ftpd','mysql']
         import os
+        path = os.path.join(public.get_panel_path(), 'data', 'guide_marking.pl')
+        if os.path.exists(path):
+            return True
+
+        # 如果引导页正在安装，即继续弹窗保持同步
+        from panel_site_v2 import panelSite
+        res_log = panelSite().get_general_progress(public.to_dict_obj({'type': 'guide_page'}))
+        if res_log['status'] == 0 and res_log['message'].get('status') == 0:
+            return False
+
+        checks = ['nginx','apache','php','pure-ftpd','mysql']
         for name in checks:
             filename = public.GetConfigValue('root_path') + "/server/" + name
-            if os.path.exists(filename): return True
+            if os.path.exists(filename):
+                return True
         return False
 
     def GetNetWorkOld(self):
@@ -1143,13 +1162,13 @@ class system:
             return public.return_message(-1, 0, str(ex))
 
         public.writeFile('data/js_random.pl','1')
-        public.ExecShell("wget --no-check-certificate -O update.sh " + public.get_url() + "/install/update_7.x_en.sh && bash update.sh")
+        public.ExecShell("wget --no-check-certificate -O update.sh " + public.get_url() + "/install/update_panel_en.sh && bash update.sh")
         self.ReWeb(None)
         return public.return_message(0,0,True)
 
     #升级到专业版
     def UpdatePro(self,get):
-        public.ExecShell("wget --no-check-certificate -O update.sh " + public.get_url() + "/install/update_7.x_en.sh && bash update.sh")
+        public.ExecShell("wget --no-check-certificate -O update.sh " + public.get_url() + "/install/update_panel_en.sh && bash update.sh")
         self.ReWeb(None)
         return True
 

@@ -55,8 +55,8 @@ class process_network_total:
                 f.close()
                 if red_body.find('CentOS Linux release 8.') != -1:
                     rpm_file = '/root/libpcap-1.9.1.rpm'
-                    down_url = "wget -O {} https://node.aapanel.com/src/libpcap-devel-1.9.1-5.el8.x86_64.rpm  --no-check-certificate -T 10".format(
-                        rpm_file)
+                    down_url = "wget -O {} {}/src/libpcap-devel-1.9.1-5.el8.x86_64.rpm  --no-check-certificate -T 10".format(
+                        rpm_file, public.OfficialDownloadBase())
                     if os.path.exists(rpm_file):
                         os.system(down_url)
                         os.system("rpm -ivh {}".format(rpm_file))

@@ -88,6 +88,9 @@
 			"Enable": "Включить",
 			"Disable": "Отключить"
 		},
+		"AlarmTask": {
+			"ConfigurationTask": "Настройка задач оповещения"
+		},
 		"Table": {
 			"Ps": "Замечание",
 			"Status": "Статус",
@@ -110,6 +113,7 @@
 			"Disable": "Отключить",
 			"Running": "Работает",
 			"Stopped": "Остановлен",
+			"NotConfigured": "Не настроено",
 			"Paused": "Пауза",
 			"TurnOn": "Включено",
 			"TurnOff": "Выключено",

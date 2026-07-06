@@ -88,6 +88,9 @@
 			"Enable": "Etkinleştir",
 			"Disable": "Kapat"
 		},
+		"AlarmTask": {
+			"ConfigurationTask": "Uyarı görevlerini yapılandır"
+		},
 		"Table": {
 			"Ps": "Açıklama",
 			"Status": "Durum",
@@ -110,6 +113,7 @@
 			"Disable": "Devre Dışı",
 			"Running": "Çalışıyor",
 			"Stopped": "Durduruldu",
+			"NotConfigured": "Yapılandırılmamış",
 			"Paused": "Duraklatıldı",
 			"TurnOn": "Aç",
 			"TurnOff": "Kapat",

@@ -452,6 +452,78 @@
 			"index_42": "Редагування триває, зачекайте...",
 			"index_43": "Типи налаштовуються, зачекайте...",
 			"index_44": "Створення триває, зачекайте..."
+		},
+		"BillionMail": {
+			"Service": {
+				"name": "Billion Mail",
+				"latest": "Остання",
+				"checking": "Перевірка",
+				"stopped": "Зупинено",
+				"running": "Працює",
+				"version": "Версія: {0}"
+			},
+			"Preview": {
+				"paused": "BillionMail призупинено",
+				"settingsTitle": "Налаштування Billion Mail"
+			},
+			"Api": {
+				"starting": "Запуск, зачекайте...",
+				"stopping": "Зупинка, зачекайте...",
+				"restarting": "Перезапуск, зачекайте...",
+				"uninstalling": "Видалення, зачекайте..."
+			},
+			"Install": {
+				"title": "Встановити BillionMail",
+				"heroLine1": "Самостійний email-маркетинг",
+				"heroLine2": "просто та зручно",
+				"description": "Запустіть власний поштовий сервер і маркетингову платформу за кілька кліків. Керуйте кампаніями, списками розсилки, аналітикою та доставлюваністю, зберігаючи повний контроль над інфраструктурою.",
+				"featureCampaigns": "Кампанії",
+				"featureMailingLists": "Списки розсилки",
+				"featureAnalytics": "Аналітика",
+				"featureDeliverability": "Доставлюваність",
+				"featureOwnership": "Повний контроль",
+				"installBillionMail": "Встановити BillionMail",
+				"installClassicMail": "Встановити ClassicMail",
+				"versionTag": "Остання / {0} / Docker",
+				"recommended": "Рекомендовано",
+				"legacy": "Застаріла",
+				"classicName": "ClassicMail",
+				"billionMailDesc": "Сучасна самостійно розміщена платформа email-маркетингу з повною аналітикою та керуванням кампаніями.",
+				"classicMailDesc": "Стабільний застарілий поштовий сервер для старих систем. Базове надсилання та лише необхідні функції.",
+				"legacyCompatibility": "Сумісність із застарілою версією",
+				"bannerPreview": "Попередній перегляд панелі BillionMail"
+			},
+			"Guide": {
+				"title": "Встановлення BillionMail",
+				"minimize": "Згорнути",
+				"close": "Закрити",
+				"restore": "Відновити",
+				"startInstall": "Почати встановлення",
+				"config": "Налаштування",
+				"installer": "Інсталятор BillionMail",
+				"completed": "Завершено {0}%",
+				"failed": "Встановлення не вдалося. Перевірте журнал завдання та спробуйте ще раз.",
+				"startingInstall": "Запуск встановлення",
+				"fetchingLogs": "Отримання журналів встановлення...",
+				"waitingLogs": "Очікування журналів встановлення...",
+				"processing": "Обробка",
+				"installedTitle": "BillionMail успішно встановлено",
+				"installingTitle": "Встановлення BillionMail",
+				"readyTitle": "Готово до встановлення BillionMail",
+				"readyMinimized": "Готово до початку встановлення.",
+				"serviceReady": "Поштова служба готова.",
+				"preparing": "Підготовка поштових служб.",
+				"progressDescription": "Отримання журналів встановлення під час підготовки поштових служб.",
+				"readyDescription": "Почніть із налаштувань за замовчуванням або відкрийте конфігурацію, щоб налаштувати встановлення.",
+				"successDescription": "Поштова служба готова. Продовжте налаштування консолі.",
+				"installPath": "Шлях встановлення",
+				"serviceStatus": "Стан служби",
+				"version": "Версія",
+				"open": "Відкрити",
+				"configurationParameters": "Параметри конфігурації",
+				"active": "Активно",
+				"successTip": "Після встановлення відкрийте консоль BillionMail і завершіть налаштування домену, DNS та перевірки відправника."
+			}
 		}
 	}
 }

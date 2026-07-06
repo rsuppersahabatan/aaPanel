@@ -1546,9 +1546,10 @@ class AppManage(App):
         for app in self.apps_json:
             if app["appstatus"] == 0: continue
             app["installedCount"] = 0
-            if app["apptype"] == "AI":
-                from mod.project.docker.app.gpu.tools import GPUTool
-                GPUTool.register_app_gpu_option(app)
+            # 暂未做gpu优化
+            # if app["apptype"] == "AI":
+            #     from mod.project.docker.app.gpu.tools import GPUTool
+            #     GPUTool.register_app_gpu_option(app)
 
             if get.app_type in ("all", app["apptype"],"AppHub"):
                 if(get.app_type == "AppHub" and app["appid"] != -1):
@@ -1773,8 +1774,8 @@ class AppManage(App):
             elif info["fieldKey"] == "HTTP_PORT" and info["fieldValue"]:
                 http_port = info["fieldValue"]
 
-        public.print_log("https_port:", https_port)
-        public.print_log("http_port:", http_port)
+        # public.print_log("https_port:", https_port)
+        # public.print_log("http_port:", http_port)
         ip_address = public.GetLocalIp()
         if https_port:
             return f"https://{ip_address}:{https_port}"

@@ -123,7 +123,9 @@
 			"index_98": "CDN代理",
 			"index_99": "從CDN代理中獲取請求的真實IP",
 			"iconAuto": "自動獲取網站圖標",
-			"iconAutoDesc": "開啟後每12小時會嘗試獲取網站圖標"
+			"iconAutoDesc": "開啟後每12小時會嘗試獲取網站圖標",
+			"homeAnnounce": "首頁公告",
+			"homeAnnounceDesc": "在首頁顯示面板公告、更新提醒等通知資訊"
 		},
 		"Safe": {
 			"index_1": "安全設置",

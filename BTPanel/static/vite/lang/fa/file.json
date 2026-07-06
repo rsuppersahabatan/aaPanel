@@ -35,7 +35,7 @@
 		"protection": "حفاظت از فایل/مدیر",
 		"remarks": "ص",
 		"pathNotExists": "مسیر وجود ندارد",
-		"pathNotExistsConfirm": "مسیر [{ path}] وجود ندارد، آیا می‌خواهید آن را ایجاد کنید و به آن بروید؟",
+		"pathNotExistsConfirm": "مسیر [{path}] وجود ندارد، آیا می‌خواهید آن را ایجاد کنید و به آن بروید؟",
 		"protectedStatus": "محافظت شده است",
 		"unprotectedStatus": "محافظت نشده",
 		"tabs": {
@@ -137,9 +137,9 @@
 			"emptyTips": "گزینه های دقیق می توانند به طور موثر زمان جستجو را کوتاه کنند",
 			"fileSearching": "جستجو در فایل ها",
 			"searchCompleted": "جستجو تکمیل شد",
-			"contentSummary": "{Match} در فایل {files} مطابقت دارد",
+			"contentSummary": "{matches} در فایل {files} مطابقت دارد",
 			"nameSummary": "نتایج جستجو، فایل‌های {files}",
-			"linePrefix": "خط {خط}:",
+			"linePrefix": "خط {line}:",
 			"keywordRequired": "لطفا محتوای جستجو را وارد کنید",
 			"pathRequired": "لطفا یک دایرکتوری انتخاب کنید",
 			"timeRequired": "لطفا زمانی را انتخاب کنید",
@@ -243,6 +243,9 @@
 				"untitledDirectory": "دایرکتوری بدون عنوان"
 			}
 		},
+		"cloudStorageTransfer": {
+			"overwriteRiskConfirm": "در حال انتقال فایل [{0}]، اگر فایل وجود داشته باشد بازنویسی می‌شود. ادامه می‌دهید؟"
+		},
 		"pasteConfirm": {
 			"title": "اطلاعیه فایل مهم",
 			"operationType": "نوع عملیات",
@@ -258,7 +261,7 @@
 			"calculationFailed": "محاسبه انجام نشد",
 			"processingWait": "در حال پردازش، لطفا صبر کنید...",
 			"turningOffProtection": "خاموش کردن حفاظت [{path}]",
-			"turningOnProtection": "روشن کردن حفاظت [{ path}]",
+			"turningOnProtection": "روشن کردن حفاظت [{path}]",
 			"currentFile": "فایل فعلی",
 			"protection": " حفاظت",
 			"extension": "پسوند",
@@ -273,8 +276,8 @@
 			"afterTurningOnProtectionFile": "پس از روشن کردن محافظت، این فایل تمام عملیات را رد می کند.",
 			"turningOnProtectionFile": "فعال کردن حفاظت از فایل فعلی [{path}]",
 			"turningOffProtectionFile": "محافظت از فایل فعلی [{path}] را ببندید",
-			"turningOnProtectionSuffix": "فعال کردن حفاظت از پسوند [{پسوند}]",
-			"turningOffProtectionSuffix": "محافظت از پسوند [{پسوند}] را ببندید"
+			"turningOnProtectionSuffix": "فعال کردن حفاظت از پسوند [{suffix}]",
+			"turningOffProtectionSuffix": "محافظت از پسوند [{suffix}] را ببندید"
 		},
 		"deleteController": {
 			"deleteSingleFileTitle": "حذف فایل [{name}]",
@@ -392,7 +395,7 @@
 			}
 		},
 		"tableFooter": {
-			"summary": "مجموع {dirNum} فهرست، {fileNum} فایل، اندازه فایل: ",
+			"summary": "مجموعاً {dirNum} دایرکتوری، {fileNum} فایل، اندازه: ",
 			"calculate": "محاسبه کنید",
 			"diskAnalysisTip": "ابزار تجزیه و تحلیل دیسک را نصب کنید تا تمام اندازه های دایرکتوری را با یک کلیک اسکن کنید"
 		},
@@ -668,7 +671,7 @@
 				"monokai": "مونوکای (تاریک)"
 			},
 			"goToLineTitle": "برو به خط",
-			"goToLineHint": "فعلی: خط {خط}، ستون {ستون}. شماره خط (1-{حداکثر}) را وارد کنید.",
+			"goToLineHint": "فعلی: خط {line}، ستون {column}. شماره خط (1-{max}) را وارد کنید.",
 			"fontSizeTitle": "اندازه فونت ویرایشگر را تنظیم کنید",
 			"tabSizeTitle": "تنظیمات برگه",
 			"tabSizeLengthTitle": "اندازه برگه",

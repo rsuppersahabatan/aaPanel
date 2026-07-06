@@ -32,8 +32,21 @@ class panelPlugin:
     __index = 'config/index.json'
     __link = 'config/link.json'
 
-    __official_url = public.OfficialApiBase()
-    __sync_plugin = public.sync_plugin_OfficialApiBase()
+    # __official_url = public.OfficialApiBase()
+    # __sync_plugin = public.SyncPluginOfficialApiBase()
+
+    @property
+    def __official_url(self):
+        return public.OfficialApiBase()
+
+    @property
+    def __sync_plugin(self):
+        return public.SyncPluginOfficialApiBase()
+
+    @property
+    def __download_sync_plugin(self):
+        # 同步下载url
+        return f"{self.__sync_plugin}/api/panel/download_plugin"
 
     def __init__(self):
         self.__isTable = None
@@ -50,12 +63,6 @@ class panelPlugin:
         self.__plugin_path = self.__panel_path + '/plugin/'
         self.__plugin_save_file = self.__panel_path + '/data/plugin_bin.pl'
         self.__api_root_url = self.__official_url + '/api'
-        self.__api_url = self.__api_root_url + '/panel/get_plugin_list'
-        self.__download_sync_plugin = self.__sync_plugin + '/api' + '/panel/download_plugin'  # 同步下载url
-        self.__download_url = self.__api_root_url + '/panel/download_plugin'
-        self.__download_d_main_url = self.__api_root_url + '/panel/download_plugin_main'
-        self._check_url = self.__api_root_url + '/panel/get_soft_list_status'
-        self._unbinding_url = self.__api_root_url + '/panel/get_unbinding'
         self.__tmp_path = self.__panel_path + '/temp/'
         self.__plugin_timeout = 3600
         self.__is_php = False
@@ -535,7 +542,6 @@ class panelPlugin:
         #处理ols还不支持php81的情况
         # if get.sName == "php-8.1" and public.get_webserver() == 'openlitespeed':
         #     return public.return_msg_gettext(False, public.lang("Sorry, currently OLS official does not support php8.1"))
-
         # 处理多服务版本限制
         if get.sName == 'nginx' and public.get_multi_webservice_status():
             try:
@@ -571,16 +577,14 @@ class panelPlugin:
                 pass
         else:
             result = self.install_async(pluginInfo,get)
-        # public.print_log("hdfh222  {}".format(result))
         try:
-            # if 'status' in result:
-            #     if result['status']:
-            #         public.arequests('post','{}/api/setupCount/setupPlugin'.format(self.__official_url),data={"pid":pluginInfo['id'],'p_name':pluginInfo['name']},timeout=3)
             if result:
-                public.arequests('post', '{}/api/setupCount/setupPlugin'.format(self.__official_url),
-                                 data={"pid": pluginInfo['id'], 'p_name': pluginInfo['name']}, timeout=3)
-            # get.force = 1
-            # self.get_cloud_list(get)
+                public.arequests(
+                    'post',
+                    '{}/api/setupCount/setupPlugin'.format(self.__official_url),
+                    data={"pid": pluginInfo['id'], 'p_name': pluginInfo['name']},
+                    timeout=3
+                )
         except:
             pass
 
@@ -597,35 +601,30 @@ class panelPlugin:
         try:
             token = panelAuth.panelAuth().create_serverid(None)['token']
         except:
-            # return public.returnMsg(False,'Please log in as aaPanel account first')
             token = None
         if 'download' in pluginInfo['versions'][0]:
             tmp_path = '/www/server/panel/temp'
-            if not os.path.exists(tmp_path): os.makedirs(tmp_path,mode=384)
+            if not os.path.exists(tmp_path):
+                os.makedirs(tmp_path,mode=384)
             public.ExecShell("rm -rf " + tmp_path + '/*')
             toFile = tmp_path + '/' + pluginInfo['name'] + '.zip'
+
             public.downloadFile('{}/api/plugin/download?filename={}&token={}'.format(
                 self.__official_url,
                 pluginInfo['versions'][0]['download'],
                 token
                 ),toFile)
+
             if public.FileMd5(toFile) != pluginInfo['versions'][0]['md5']:
                 return public.return_msg_gettext(False, public.lang("File hash verification failed, stop installation!"))
-            update = False
-            if os.path.exists(pluginInfo['install_checks']): update =pluginInfo['versions'][0]['version_msg']
-            return self._update_zip(None,toFile,update)
-        else:
-            # download_url = public.get_url() + '/install/plugin/' + pluginInfo['name'] + '_en/install.sh'
-            # toFile = '/tmp/%s.sh' % pluginInfo['name']
-            # public.downloadFile(download_url,toFile)
-            # self.set_pyenv(toFile)
-            # public.ExecShell('/bin/bash ' + toFile + ' install &> /tmp/panelShell.pl')
-            # if os.path.exists(pluginInfo['install_checks']):
-            #     public.write_log_gettext('Installer','Successfully installed plugin [{}]',(pluginInfo['title'],))
-            #     if os.path.exists(toFile): os.remove(toFile)
-            #     return public.return_msg_gettext(True,'Installation succeeded!')
-            # return public.return_msg_gettext(False,'Installation failed')
 
+            update = False
+            if os.path.exists(pluginInfo['install_checks']):
+                update =pluginInfo['versions'][0]['version_msg']
+
+            return self._update_zip(None,toFile,update)
+
+        else:
             if hasattr(get, 'min_version'):
                 get.version += '.' + get.min_version
 
@@ -2670,7 +2669,7 @@ class panelPlugin:
     def getCloudPlugin(self,get):
         if session.get('getCloudPlugin') and get != None: return public.return_message(0, 0,'Your plugin list is already the latest version {}!',("-1",))
         import json
-        if not session.get('download_url'): session['download_url'] = 'http://node.aapanel.com'
+        if not session.get('download_url'): session['download_url'] = public.OfficialDownloadBase()
 
         #获取列表
         try:
@@ -2835,7 +2834,7 @@ class panelPlugin:
                 data = json.loads(public.ReadFile(p_info).decode('utf-8-sig'))
             data['size'] = public.get_path_size(tmp_path)
             if not 'author' in data: data['author'] = public.lang("Unknown")
-            if not 'home' in data: data['home'] = 'https://www.aapanel.com/forum'
+            if not 'home' in data: data['home'] = f'{public.OfficialApiBase()}/forum'
 
             plugin_path = '/www/server/panel/plugin/' + data['name'] + '/info.json'
             data['old_version'] = '0'
@@ -2898,7 +2897,7 @@ class panelPlugin:
                 data = json.loads(public.ReadFile(p_info).decode('utf-8-sig'))
             data['size'] = public.get_path_size(tmp_path)
             if not 'author' in data: data['author'] = public.lang("Unknown")
-            if not 'home' in data: data['home'] = 'https://www.aapanel.com/forum'
+            if not 'home' in data: data['home'] = f'{public.OfficialApiBase()}/forum'
 
             plugin_path = '/www/server/panel/plugin/' + data['name'] + '/info.json'
             data['old_version'] = '0'
@@ -3339,8 +3338,9 @@ class panelPlugin:
                 urllib3_conn.allowed_gai_family = lambda: socket.AF_INET6
             try:
                 cache.set(pkey, '0/0/0', 3600)
+                download_url = public.get_reachable_url(self.__download_sync_plugin)
                 download_res = requests.post(
-                    self.__download_sync_plugin,
+                    download_url,
                     pdata,
                     headers=public.get_requests_headers(),
                     timeout=(60, 1800),

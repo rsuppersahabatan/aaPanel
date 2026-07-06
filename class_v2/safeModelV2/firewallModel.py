@@ -1366,15 +1366,24 @@ class main(safeBase):
         return True
 
     def __check_auth(self):
-        try:
-            from pluginAuth import Plugin
-            plugin_obj = Plugin(False)
-            plugin_list = plugin_obj.get_plugin_list()
-            if int(plugin_list['ltd']) > time.time():
-                return True
-            return False
-        except:
-            return False
+        '''
+            @name 检测授权
+            @author lkq@bt.cn
+            @time 2022-10-10
+            @return bool
+        '''
+        from plugin_auth_v2 import Plugin as Plugin
+        plugin_obj = Plugin(False)
+        plugin_list = plugin_obj.get_plugin_list()
+
+        # 如果 "pro" 不存在/为空/非法，就用 "ltd" 的值兜底
+        pro_value = plugin_list.get("pro")
+        if not pro_value or str(pro_value).strip() == "":
+            pro_value = plugin_list.get("ltd", "0")
+
+        import PluginLoader
+        self.__IS_PRO_MEMBER = PluginLoader.get_auth_state() > 0
+        return int(pro_value) > time.time() or self.__IS_PRO_MEMBER
 
     def set_domain_ip2(self, args):
         """

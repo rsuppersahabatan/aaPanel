@@ -430,7 +430,109 @@ class ServerMonitorRepo:
     @staticmethod
     def get_local_server_status():
         from system import system
-        return system().GetNetWork(None)
+        sys_obj = system()
+        try:
+            return sys_obj.GetNetWork(None)
+        except Exception:
+            return ServerMonitorRepo.get_local_server_status_without_request(sys_obj)
+
+    @staticmethod
+    def get_local_server_status_without_request(sys_obj=None):
+        from system import system
+        import psutil
+
+        sys_obj = sys_obj or system()
+        data = {
+            "network": {},
+            "upTotal": 0,
+            "downTotal": 0,
+            "up": 0,
+            "down": 0,
+            "downPackets": 0,
+            "upPackets": 0,
+        }
+        try:
+            for name, io_data in psutil.net_io_counters(pernic=True).items():
+                data["network"][name] = {
+                    "upTotal": io_data.bytes_sent,
+                    "downTotal": io_data.bytes_recv,
+                    "up": 0,
+                    "down": 0,
+                    "downPackets": io_data.packets_recv,
+                    "upPackets": io_data.packets_sent,
+                }
+                data["upTotal"] += io_data.bytes_sent
+                data["downTotal"] += io_data.bytes_recv
+                data["downPackets"] += io_data.packets_recv
+                data["upPackets"] += io_data.packets_sent
+        except Exception:
+            pass
+
+        try:
+            data["cpu"] = sys_obj.GetCpuInfo(1)
+        except Exception:
+            data["cpu"] = [0, 0]
+        try:
+            data["cpu_times"] = sys_obj.get_cpu_times()
+        except Exception:
+            data["cpu_times"] = None
+        try:
+            data["load"] = sys_obj.GetLoadAverage(None)
+        except Exception:
+            data["load"] = {"one": 0, "five": 0, "fifteen": 0}
+        try:
+            data["mem"] = sys_obj.GetMemInfo(None)
+        except Exception:
+            data["mem"] = {}
+        try:
+            data["version"] = public.version()
+        except Exception:
+            data["version"] = ""
+
+        disk_list = []
+        try:
+            for disk in sys_obj.GetDiskInfo2(False):
+                disk = dict(disk)
+                size_data = disk.get("size", [])
+                if isinstance(size_data, list) and len(size_data) >= 3:
+                    try:
+                        size_data.append(int(size_data[0]) - (int(size_data[1]) + int(size_data[2])))
+                    except Exception:
+                        pass
+                    disk["size"] = [
+                        "{}G".format(round(int(num) / 1048576, 2)) if str(num).isdigit() and "G" not in str(num) else num
+                        for num in size_data
+                    ]
+                inode_data = disk.get("inodes", [])
+                if isinstance(inode_data, list):
+                    disk["inodes"] = [
+                        "{}G".format(round(int(num) / 1048576, 2)) if str(num).isdigit() and "G" not in str(num) else num
+                        for num in inode_data
+                    ]
+                disk_list.append(disk)
+        except Exception:
+            pass
+        data["disk"] = disk_list
+
+        for key, default, getter in (
+            ("title", "", sys_obj.GetTitle),
+            ("time", "", sys_obj.GetBootTime),
+            ("system", "", sys_obj.GetSystemVersion),
+            ("installed", False, sys_obj.CheckInstalled),
+            ("iostat", {}, sys_obj.get_disk_iostat),
+        ):
+            try:
+                data[key] = getter()
+            except Exception:
+                data[key] = default
+        try:
+            data["site_total"] = public.M("sites").count()
+            data["ftp_total"] = public.M("ftps").count()
+            data["database_total"] = public.M("databases").count()
+        except Exception:
+            data["site_total"] = data["ftp_total"] = data["database_total"] = 0
+
+        return data
 
     def get_server_status(self, server_id: int) -> Optional[Dict]:
         cache_file = os.path.join(self._REPO_DIR, "server_{}.json".format(server_id))

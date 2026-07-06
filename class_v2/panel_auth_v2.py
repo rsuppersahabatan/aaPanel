@@ -21,8 +21,12 @@ class panelAuth:
     __product_list_path = 'data/product_list.pl'
     __product_bay_path = 'data/product_bay.pl'
     __product_id = '100000011'
-    __official_url = public.OfficialApiBase()
+    # __official_url = public.OfficialApiBase()
     __failed_connect_server='Failed to connect to the server!'
+
+    @property
+    def __official_url(self):
+        return public.OfficialApiBase()
 
     def create_serverid(self, get):
         try:

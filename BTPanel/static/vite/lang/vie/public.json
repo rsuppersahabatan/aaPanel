@@ -88,6 +88,9 @@
 			"Enable": "Cho phép",
 			"Disable": "Đóng"
 		},
+		"AlarmTask": {
+			"ConfigurationTask": "Cấu hình nhiệm vụ cảnh báo"
+		},
 		"Table": {
 			"Ps": "Nhận xét",
 			"Status": "Trạng thái",
@@ -110,6 +113,7 @@
 			"Disable": "Vô hiệu hóa",
 			"Running": "Đang chạy",
 			"Stopped": "Dừng lại",
+			"NotConfigured": "Chưa cấu hình",
 			"Paused": "Tạm dừng",
 			"TurnOn": "Bật",
 			"TurnOff": "Tắt",

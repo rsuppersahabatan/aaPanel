@@ -320,5 +320,6 @@
 	"b06d9a520d3afbaeae334c727c6ade06": "Substituir arquivo",
 	"19a39cd0d3139dc678c53f0101138dc5": "Renomear arquivo",
 	"84ba4cf46c874b0b5951eb3b75298329": "Última modificação",
-	"027f8389b7dbee80b344a7eab80cac44": "Arquivo duplicado detectado. Tem certeza de que deseja substituir o arquivo [{0}] atual?"
+	"027f8389b7dbee80b344a7eab80cac44": "Arquivo duplicado detectado. Tem certeza de que deseja substituir o arquivo [{0}] atual?",
+	"4be6ecea6c4c14e13a4d9ac2cac97fba": "Transferindo o arquivo [{0}], se o arquivo existir, ele será sobrescrito. Continuar?"
 }

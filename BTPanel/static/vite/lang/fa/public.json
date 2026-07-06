@@ -88,6 +88,9 @@
 			"Enable": "فعال کردن",
 			"Disable": "بستن"
 		},
+		"AlarmTask": {
+			"ConfigurationTask": "وظایف زنگ را پیکربندی کنید"
+		},
 		"Table": {
 			"Ps": "تذکر دهید",
 			"Status": "وضعیت",
@@ -110,6 +113,7 @@
 			"Disable": "غیر فعال کردن",
 			"Running": "در حال دویدن",
 			"Stopped": "متوقف شد",
+			"NotConfigured": "پیکربندی نشده است",
 			"Paused": "مکث کرد",
 			"TurnOn": "روشن کنید",
 			"TurnOff": "خاموش کنید",

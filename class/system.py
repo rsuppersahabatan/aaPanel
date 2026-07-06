@@ -993,12 +993,12 @@ class system:
     #修复面板
     def RepPanel(self,get):
         public.writeFile('data/js_random.pl','1')
-        public.ExecShell("wget --no-check-certificate -O update.sh " + public.get_url() + "/install/update_7.x_en.sh && bash update.sh")
+        public.ExecShell("wget --no-check-certificate -O update.sh " + public.get_url() + "/install/update_panel_en.sh && bash update.sh")
         self.ReWeb(None)
         return True
     
     #升级到专业版
     def UpdatePro(self,get):
-        public.ExecShell("wget --no-check-certificate -O update.sh " + public.get_url() + "/install/update_7.x_en.sh && bash update.sh")
+        public.ExecShell("wget --no-check-certificate -O update.sh " + public.get_url() + "/install/update_panel_en.sh && bash update.sh")
         self.ReWeb(None)
         return True

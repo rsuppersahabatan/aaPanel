@@ -156,7 +156,7 @@
 			"index_30": "outbox에 저장하세요",
 			"index_31": "구독 취소 링크",
 			"index_32": "케이스보기",
-			"index_33": "스레드 num",
+			"index_33": "스레드 수",
 			"index_34": "자동",
 			"index_35": "관습",
 			"index_36": "스레드 수를 입력하세요",
@@ -310,7 +310,7 @@
 		},
 		"Backup": {
 			"index_1": "백업 계획",
-			"index_2": "백업을 엽니 다",
+			"index_2": "백업을 엽니다",
 			"index_3": "기간",
 			"index_4": "백업",
 			"index_5": "마지막 유지",
@@ -452,6 +452,78 @@
 			"index_42": "편집, 잠깐만 ...",
 			"index_43": "유형 설정, 기다려주세요 ...",
 			"index_44": "창조, 잠깐만 ..."
+		},
+		"BillionMail": {
+			"Service": {
+				"name": "Billion Mail",
+				"latest": "최신",
+				"checking": "확인 중",
+				"stopped": "중지됨",
+				"running": "실행 중",
+				"version": "버전: {0}"
+			},
+			"Preview": {
+				"paused": "BillionMail이 일시 중지되었습니다",
+				"settingsTitle": "Billion Mail 설정"
+			},
+			"Api": {
+				"starting": "시작 중입니다. 잠시만 기다려 주세요...",
+				"stopping": "중지 중입니다. 잠시만 기다려 주세요...",
+				"restarting": "재시작 중입니다. 잠시만 기다려 주세요...",
+				"uninstalling": "제거 중입니다. 잠시만 기다려 주세요..."
+			},
+			"Install": {
+				"title": "BillionMail 설치",
+				"heroLine1": "셀프 호스팅 이메일 마케팅",
+				"heroLine2": "간편하게 시작",
+				"description": "몇 번의 클릭으로 자체 이메일 서버와 마케팅 플랫폼을 시작하세요. 캠페인, 메일링 리스트, 분석, 전달률을 관리하면서 인프라를 완전히 제어할 수 있습니다.",
+				"featureCampaigns": "캠페인",
+				"featureMailingLists": "메일링 리스트",
+				"featureAnalytics": "분석",
+				"featureDeliverability": "전달률",
+				"featureOwnership": "완전한 제어",
+				"installBillionMail": "BillionMail 설치",
+				"installClassicMail": "ClassicMail 설치",
+				"versionTag": "최신 / {0} / Docker",
+				"recommended": "권장",
+				"legacy": "레거시",
+				"classicName": "ClassicMail",
+				"billionMailDesc": "전체 분석 및 캠페인 관리를 제공하는 최신 셀프 호스팅 이메일 마케팅 플랫폼입니다.",
+				"classicMailDesc": "구형 시스템을 위한 안정적인 레거시 이메일 서버입니다. 기본 발송 및 필수 기능을 제공합니다.",
+				"legacyCompatibility": "레거시 호환성",
+				"bannerPreview": "BillionMail 대시보드 미리보기"
+			},
+			"Guide": {
+				"title": "BillionMail 설치",
+				"minimize": "숨기기",
+				"close": "닫기",
+				"restore": "복원",
+				"startInstall": "설치 시작",
+				"config": "설정",
+				"installer": "BillionMail 설치 프로그램",
+				"completed": "{0}% 완료",
+				"failed": "설치에 실패했습니다. 작업 로그를 확인한 후 다시 시도하세요.",
+				"startingInstall": "설치 시작 중",
+				"fetchingLogs": "설치 로그를 가져오는 중...",
+				"waitingLogs": "설치 로그 대기 중...",
+				"processing": "처리 중",
+				"installedTitle": "BillionMail 설치가 완료되었습니다",
+				"installingTitle": "BillionMail 설치 중",
+				"readyTitle": "BillionMail 설치 준비 완료",
+				"readyMinimized": "설치를 시작할 준비가 되었습니다.",
+				"serviceReady": "메일 서비스가 준비되었습니다.",
+				"preparing": "메일 서비스를 준비 중입니다.",
+				"progressDescription": "메일 서비스를 준비하는 동안 설치 로그를 가져옵니다.",
+				"readyDescription": "기본 설정으로 시작하거나 설정을 열어 설치를 사용자 지정하세요.",
+				"successDescription": "메일 서비스가 준비되었습니다. 콘솔 설정을 계속 진행하세요.",
+				"installPath": "설치 경로",
+				"serviceStatus": "서비스 상태",
+				"version": "버전",
+				"open": "열기",
+				"configurationParameters": "설정 매개변수",
+				"active": "활성",
+				"successTip": "설치 후 BillionMail 콘솔을 열고 도메인, DNS, 발신자 인증 설정을 완료하세요."
+			}
 		}
 	}
 }

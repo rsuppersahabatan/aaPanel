@@ -465,6 +465,99 @@
 			"Index_5": "Lütfen kullanıcı seçin",
 			"Index_6": "Bu kullanıcıyı silmek istediğinizden emin misiniz?"
 		},
+		"ServerSafe": {
+		  "title": "Sunucu Güvenliği",
+		  "sshProtectionConfiguration": "SSH Koruma Yapılandırması",
+		  "sshProtectionLog": "SSH Koruma Günlükleri",
+		  "securityConfiguration": "Güvenlik Yapılandırması",
+		  "totalBannedIp": "Yasaklanan IP sayısı",
+		  "totalFailedConnection": "Bağlantı başarısız sayısı",
+		  "currentBannedIp": "Şu anda yasaklanmış IP",
+		  "currentFailedConnection": "Mevcut bağlantı başarısız oldu",
+		  "statusCodeAccessDenied": "403 - Access Denied",
+		  "statusCodePageNotFound": "404 - Page Not Found",
+		  "statusCodeInvalidRequest": "416 - Invalid Request",
+		  "statusCodeClientTimeout": "408 - Client Timeout",
+		  "statusCodeClientRequestError": "400 - Client Request Error",
+		  "statusCodeUnauthorizedAccess": "401 - Unauthorized Access",
+		  "sshKeyLogin": "SSH anahtar ile giriş",
+		  "enableSshKeyBeforeView": "Lütfen önce SSH anahtar ile girişi etkinleştirin, ardından anahtarı kontrol edin",
+		  "enableSshKeyBeforeDownload": "Lütfen önce SSH anahtar ile girişi etkinleştirin ve ardından anahtarı indirin.",
+		  "gettingKeyInfo": "Anahtar bilgileri alınıyor, lütfen bekleyin...",
+		  "loading": "Yükleniyor, lütfen bekleyin...",
+		  "lastFiveLoginRecords": "Son 5 giriş kaydı",
+		  "viewMore": "Daha fazlasını görün",
+		  "ip": "IP",
+		  "loginTime": "Giriş Zamanı",
+		  "port": "Port",
+		  "success": "Başarılı",
+		  "failure": "Başarısız",
+		  "browser": "Tarayıcı",
+		  "blockIpConfirm": "Bu IP engellendikten sonra, bu IP artık sunucuya erişemeyecektir. Devam edilsin mi?",
+		  "unblockIpConfirm": "Bu IP'nin engeli kaldırıldıktan sonra, bu IP'den sunucuya erişim geri yüklenecektir. Devam edilsin mi?",
+		  "manualBlockBrief": "SSH giriş günlüğü sayfasında IP'ye tıklayarak manuel engelleme",
+		  "safetyRating": "Güvenlik seviyesi",
+		  "sshPortChange": "SSH port değişiklikleri",
+		  "recommendedNon22Port": "Önerilen: 22 olmayan port kullanın",
+		  "modifyDefaultSshPort": "Kötü niyetli taramaları önlemek için varsayılan SSH bağlantı noktasını değiştirin",
+		  "important": "Önemli",
+		  "apply": "Uygula",
+		  "passwordComplexity": "Şifre Karmaşıklığı",
+		  "recommendedComplexityLevel": "Öneri: 3'ten büyük seviyeleri kullanın",
+		  "passwordComplexityDesc": "Şifre karmaşıklığı kontrolünü etkinleştirin. Mevcut karmaşıklık seviyesinde sayılar, büyük harfler, küçük harfler ve özel karakter {a} türündeki karakterler olacaktır.",
+		  "complexityLevel": "Karmaşıklık seviyesi",
+		  "passwordLengthLimit": "Şifre Uzunluğu Sınırları",
+		  "recommendedPasswordLength": "Önerilen: 9-20 karakterlik bir şifre kullanın",
+		  "setMinimumPasswordLength": "Minimum şifre uzunluğu gereksinimi ayarlamak",
+		  "minimumLength": "En az uzunluk",
+		  "sshLoginAlert": "SSH Giriş Uyarısı",
+		  "recommendedSshLoginAlerts": "Öneri: SSH Giriş Uyarısını Etkinleştirin",
+		  "sendSshLoginAlerts": "SSH girişinde uyarı gönderme",
+		  "configured": "Yapılandırıldı",
+		  "configureAlert": "Uyarıları yapılandır",
+		  "sshBruteForceProtection": "SSH şiddet koruması",
+		  "recommendedSshBruteForceProtection": "Önerilen: SSH şiddet korumasını etkinleştirin",
+		  "sshBruteForceDesc": "Şiddetli hack saldırılarını önlemek için dağıtım için arka planı açın",
+		  "panelLoginAlert": "Panel Giriş Uyarısı",
+		  "recommendedPanelLoginAlerts": "Öneri: Panel Giriş Uyarısını Etkinleştirin",
+		  "sendPanelLoginAlerts": "Panel oturum açtığınızda uyarı bildirimi gönder",
+		  "panelGoogleAuthenticatorLogin": "Panel Google Kimlik Doğrulayıcı Giriş",
+		  "recommendedGoogleAuthenticatorLogin": "Önerilen: Google Doğrulayıcı Girişini Etkinleştirin",
+		  "googleAuthenticatorDesc": "Güvenliği artırmak için Google Kimlik Doğrulayıcı Girişini Etkinleştirin",
+		  "notLoggedInStatusCode": "Yanıt Durum Kodu Giriş Yapamadı",
+		  "recommendedStatusCode404": "Öneri: 404 yanıt kodu olarak ayarlayın",
+		  "notLoggedInStatusCodeDesc": "Güvenli giriş durumu yanlış döndü",
+		  "panelSsl": "Panel SSL",
+		  "recommendedPanelHttps": "Öneri: Panel HTTPS'i etkinleştirin",
+		  "panelHttpsDesc": "HTTPS erişimini etkinleştirin (kurulduktan sonra panel yeniden başlatılacaktır)",
+		  "rootPasswordLoginSettings": "Root Parola Giriş Ayarları",
+		  "recommendedOnlyKeyLogin": "Öneri: Sadece anahtarla oturum açma",
+		  "recommendedOnlyAllowKeyLogin": "Sadece anahtar girişine izin verilmesi önerilir",
+		  "onlyKeyLogin": "Sadece anahtar giriş",
+		  "onlyCommandExecution": "Sadece komut çalıştırılır",
+		  "passwordAndKeyLogin": "Şifre ve Anahtar Giriş + Anahtar",
+		  "prohibitedLogin": "Giriş yasak",
+		  "rootKeySettings": "Kök anahtar ayarları",
+		  "rootKeyDesc": "aaPanel tuşlarını etkinleştirin, görüntüleyin ve indirin",
+		  "viewKey": "Anahtarı Görüntüle",
+		  "downloadKey": "Anahtarı indir",
+		  "maximumRetryTimes": "Maksimum Tekrar Deneme Sayısı",
+		  "period": "Periyot",
+		  "prohibitionTime": "Prohibition time",
+		  "sshProtectionConfigDesc": "SSHD hizmet günlüklerini izleyin ve IP, belirlenen bir süre içinde (300 saniye) maksimum tekrar deneme sayısını (5 kez) aşarsa, IP erişimini 86.400 saniye boyunca yasaklayın",
+		  "sshLoginSuccessful": "SSH Giriş Başarılı",
+		  "sshLoginFailed": "SSH Giriş Başarısız Oldu",
+		  "days": "Gün",
+		  "lastLoginInformation": "Son Giriş Bilgileri",
+		  "time": "Zaman",
+		  "sshLogin": "SSH Giriş",
+		  "panelLogin": "Panel Giriş",
+		  "sshProtection": "SSH Koruma",
+		  "sshProtectionNotInstalled": "SSH koruması yok",
+		  "sshProtectionInstallDesc": "SSH koruması yüklendikten sonra kötü amaçlı oturum açma denemelerini etkili bir şekilde önleyebilirsiniz",
+		  "required": "Boş olamaz",
+		  "googleAuthBinding": "Google kimlik doğrulama bağlama"
+		},
 		"SiteSecurity": {
 			"Header": {
 				"scanning": "Scanning",
@@ -542,6 +635,113 @@
 						"title": "Professional analysis of website access logs",
 						"desc": "Discover anomalies and security risks through log analysis"
 					}
+				}
+			}
+		},
+		"NetworkScan": {
+			"Tabs": {
+				"overview": "Overview",
+				"blocked": "Blocked Records",
+				"operationLog": "Operation Log",
+				"realtimeLog": "Real-time Log"
+			},
+			"Conversion": {
+				"title": "Scan Detection - Features",
+				"feature1": "Identify malicious scan IPs 24/7",
+				"feature2": "Quickly detect and block abnormal traffic",
+				"buttonSetup": "Install Now",
+				"buttonRenew": "Buy Now"
+			},
+			"Overview": {
+				"title": "Scan Overview",
+				"todayScanCount": "Today's Scan Count",
+				"todayIpCount": "Today's IP Count",
+				"totalScanCount": "Total Scan Count",
+				"scanSwitch": "Scan Detection",
+				"refresh": "Refresh",
+				"export": "Export",
+				"advancedConfig": "Advanced Config",
+				"durationText": "{minutes}m {seconds}s",
+				"durationOverflow": "999+h",
+				"columns": {
+					"scanIp": "Scan IP",
+					"scanType": "Scan Type",
+					"todayScanCount": "Today's Scans",
+					"totalScanCount": "Total Scans",
+					"scannedPorts": "Scanned Ports",
+					"scanStartTime": "Scan Start Time",
+					"scanDuration": "Scan Duration"
+				},
+				"actions": {
+					"details": "Details",
+					"block": "Block"
+				},
+				"dialogs": {
+					"scanDetail": "{ip} Scan Details",
+					"blockTitle": "Block IP",
+					"blockContent": "Block {ip} for 24 hours?",
+					"exportTitle": "Export IP List",
+					"exportContent": "Export the current scan IP list?",
+					"batchBlockTitle": "Batch Block",
+					"batchBlockDesc": "Batch block selected IPs?",
+					"advancedConfigTitle": "Advanced Config"
+				}
+			},
+			"Blocked": {
+				"columns": {
+					"ip": "IP",
+					"source": "Source",
+					"reason": "Reason"
+				},
+				"actions": {
+					"unlock": "Unblock",
+					"unlockTitle": "Unblock IP",
+					"unlockContent": "Allow {ip} to access after unblocking?",
+					"batchUnlockTitle": "Batch Unblock",
+					"batchUnlockDesc": "Batch unblock selected IPs?"
+				},
+				"defaults": {
+					"source": "Nginx Firewall",
+					"reason": "IP scan too frequent"
+				}
+			},
+			"OperationLog": {
+				"columns": {
+					"time": "Time",
+					"detail": "Detail"
+				}
+			},
+			"ScanDetail": {
+				"totalScanCount": "Total Scans:",
+				"localNetwork": "Local Network",
+				"columns": {
+					"date": "Date",
+					"scanCount": "Scan Count"
+				}
+			},
+			"DateRange": {
+				"today": "Today",
+				"yesterday": "Yesterday"
+			},
+			"AdvancedConfig": {
+				"tabs": {
+					"rule": "Block Rules",
+					"cleanup": "Data Cleanup"
+				},
+				"form": {
+					"scanTime": "Scan Time",
+					"accessCount": "Access Count",
+					"cleanupDays": "Scan Days",
+					"minuteUnit": "minutes",
+					"countUnit": "times",
+					"cleanupUnit": "days",
+					"cleanupTip": "Scan data is retained for {days} days. Older data will be cleaned automatically.",
+					"save": "Save"
+				},
+				"validation": {
+					"scanTime": "Please enter scan time",
+					"accessCount": "Please enter access count",
+					"cleanupDays": "Please enter max days"
 				}
 			}
 		}

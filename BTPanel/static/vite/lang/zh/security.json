@@ -239,6 +239,7 @@
         "index_13": "SSH登录告警",
         "index_14": "未配置",
         "index_15": "{0}配置",
+        "index_16": "修改",
         "index_17": "更多SSH安全设置请使用系统加固模块",
         "index_18": "系统加固",
         "index_19": "开启SSH密钥登录",
@@ -464,6 +465,99 @@
       "Index_5": "请选择用户",
       "Index_6": "您确定要删除此用户吗？"
     },
+    "ServerSafe": {
+      "title": "服务器安全",
+      "sshProtectionConfiguration": "SSH保护配置",
+      "sshProtectionLog": "SSH保护日志",
+      "securityConfiguration": "安全配置",
+      "totalBannedIp": "被禁IP总数",
+      "totalFailedConnection": "连接失败总数",
+      "currentBannedIp": "当前被禁IP",
+      "currentFailedConnection": "当前连接失败",
+      "statusCodeAccessDenied": "403 - 拒绝访问",
+      "statusCodePageNotFound": "404 - 页面不存在",
+      "statusCodeInvalidRequest": "416 - 无效请求",
+      "statusCodeClientTimeout": "408 - 客户端超时",
+      "statusCodeClientRequestError": "400 - 客户端请求错误",
+      "statusCodeUnauthorizedAccess": "401 - 未授权访问",
+      "sshKeyLogin": "SSH密钥登录",
+      "enableSshKeyBeforeView": "请先启用SSH密钥登录，然后检查密钥",
+      "enableSshKeyBeforeDownload": "请先启用SSH密钥登录，然后下载密钥。",
+      "gettingKeyInfo": "正在获取信息，请稍候...",
+      "loading": "正在加载，请稍候...",
+      "lastFiveLoginRecords": "最近5条登录记录",
+      "viewMore": "查看更多",
+      "ip": "IP",
+      "loginTime": "登录时间",
+      "port": "端口",
+      "success": "成功",
+      "failure": "失败",
+      "browser": "浏览器",
+      "blockIpConfirm": "阻止此IP后，该IP将不再允许访问服务器，继续吗？",
+      "unblockIpConfirm": "解除此IP后，将恢复对该IP的服务器访问，继续吗？",
+      "manualBlockBrief": "SSH登录日志页面单击IP手动阻塞",
+      "safetyRating": "安全等级",
+      "sshPortChange": "SSH端口更改",
+      "recommendedNon22Port": "建议：使用非22端口",
+      "modifyDefaultSshPort": "修改默认SSH端口以避免恶意扫描",
+      "important": "重要",
+      "apply": "应用",
+      "passwordComplexity": "密码复杂性",
+      "recommendedComplexityLevel": "建议：使用大于3的级别",
+      "passwordComplexityDesc": "启用密码复杂性检查，当前复杂性级别将包含数字、大写字母、小写字母和特殊字符{a}类型的字符",
+      "complexityLevel": "复杂度等级",
+      "passwordLengthLimit": "密码长度限制",
+      "recommendedPasswordLength": "建议：使用长度为9-20个字符的密码",
+      "setMinimumPasswordLength": "设置最小密码长度要求",
+      "minimumLength": "最小长度",
+      "sshLoginAlert": "SSH登录警报",
+      "recommendedSshLoginAlerts": "建议：启用SSH登录警报",
+      "sendSshLoginAlerts": "SSH登录时发送警报通知",
+      "configured": "已配置",
+      "configureAlert": "配置告警",
+      "sshBruteForceProtection": "SSH暴力保护",
+      "recommendedSshBruteForceProtection": "推荐：启用SSH暴力保护",
+      "sshBruteForceDesc": "开启后台进行部署,防止暴力破解攻击",
+      "panelLoginAlert": "面板登录警报",
+      "recommendedPanelLoginAlerts": "建议：启用面板登录警报",
+      "sendPanelLoginAlerts": "面板登录时发送警报通知",
+      "panelGoogleAuthenticatorLogin": "面板Google身份验证器登录",
+      "recommendedGoogleAuthenticatorLogin": "推荐：启用Google身份验证器登录",
+      "googleAuthenticatorDesc": "启用Google身份验证器登录以增强安全性",
+      "notLoggedInStatusCode": "未登录响应状态代码",
+      "recommendedStatusCode404": "建议：将404设置为响应代码",
+      "notLoggedInStatusCodeDesc": "安全入口不正确返回的状态",
+      "panelSsl": "面板SSL",
+      "recommendedPanelHttps": "建议：启用面板HTTPS",
+      "panelHttpsDesc": "启用HTTPS访问（设置后面板将重新启动）",
+      "rootPasswordLoginSettings": "Root密码登录设置",
+      "recommendedOnlyKeyLogin": "建议：仅使用密钥登录",
+      "recommendedOnlyAllowKeyLogin": "建议只允许密钥登录",
+      "onlyKeyLogin": "仅密钥登录",
+      "onlyCommandExecution": "仅命令执行",
+      "passwordAndKeyLogin": "密码和密钥登录+密钥",
+      "prohibitedLogin": "禁止登录",
+      "rootKeySettings": "根密钥设置",
+      "rootKeyDesc": "启用aaPanel键，查看和下载",
+      "viewKey": "查看密钥",
+      "downloadKey": "下载密钥",
+      "maximumRetryTimes": "最大重试次数",
+      "period": "周期",
+      "prohibitionTime": "封禁时间",
+      "sshProtectionConfigDesc": "监控SSHD服务日志，如果IP在设定的时间段（300秒）内超过最大重试次数（5次），则禁止IP访问86400秒",
+      "sshLoginSuccessful": "SSH登录成功",
+      "sshLoginFailed": "SSH登录失败",
+      "days": "天",
+      "lastLoginInformation": "上次登录信息",
+      "time": "操作时间",
+      "sshLogin": "SSH登录",
+      "panelLogin": "面板登录",
+      "sshProtection": "SSH保护",
+      "sshProtectionNotInstalled": "未安装SSH保护功能",
+      "sshProtectionInstallDesc": "安装SSH保护功能后，可以有效防止恶意登录尝试",
+      "required": "不能为空",
+      "googleAuthBinding": "设置动态口令"
+    },
     "SiteSecurity": {
       "Header": {
         "scanning": "正在扫描",
@@ -541,6 +635,113 @@
             "title": "专业分析网站访问日志",
             "desc": "通过日志分析，挖掘访问异常与安全隐患"
           }
+        }
+      }
+    },
+    "NetworkScan": {
+      "Tabs": {
+        "overview": "概览",
+        "blocked": "封锁记录",
+        "operationLog": "操作日志",
+        "realtimeLog": "实时日志"
+      },
+      "Conversion": {
+        "title": "扫描感知-功能介绍",
+        "feature1": "全天识别恶意扫描服务器的异常 IP",
+        "feature2": "快速定位异常流量并支持封锁处置",
+        "buttonSetup": "立即安装",
+        "buttonRenew": "立即购买"
+      },
+      "Overview": {
+        "title": "扫描概览",
+        "todayScanCount": "今日扫描次数",
+        "todayIpCount": "今日扫描 IP 数",
+        "totalScanCount": "总扫描次数",
+        "scanSwitch": "扫描感知",
+        "refresh": "刷新",
+        "export": "导出",
+        "advancedConfig": "高级配置",
+        "durationText": "{minutes}分{seconds}秒",
+        "durationOverflow": "999+小时",
+        "columns": {
+          "scanIp": "扫描 IP",
+          "scanType": "扫描类型",
+          "todayScanCount": "今日扫描次数",
+          "totalScanCount": "总扫描次数",
+          "scannedPorts": "被扫描的端口",
+          "scanStartTime": "扫描开始时间",
+          "scanDuration": "扫描持续时间"
+        },
+        "actions": {
+          "details": "详情",
+          "block": "封锁"
+        },
+        "dialogs": {
+          "scanDetail": "{ip} 扫描详情",
+          "blockTitle": "封禁 IP",
+          "blockContent": "是否封禁【{ip}】24 小时？",
+          "exportTitle": "导出 IP 列表",
+          "exportContent": "确定要导出当前扫描 IP 列表吗？",
+          "batchBlockTitle": "批量封锁",
+          "batchBlockDesc": "即将批量封锁选中的 IP，是否继续操作？",
+          "advancedConfigTitle": "高级配置"
+        }
+      },
+      "Blocked": {
+        "columns": {
+          "ip": "IP",
+          "source": "封锁来源",
+          "reason": "封禁原因"
+        },
+        "actions": {
+          "unlock": "解封",
+          "unlockTitle": "解封 IP",
+          "unlockContent": "解封后将允许【{ip}】进行访问，是否继续操作？",
+          "batchUnlockTitle": "批量解封",
+          "batchUnlockDesc": "即将批量解封选中的 IP，是否继续操作？"
+        },
+        "defaults": {
+          "source": "Nginx防火墙",
+          "reason": "IP扫描过于频繁"
+        }
+      },
+      "OperationLog": {
+        "columns": {
+          "time": "时间",
+          "detail": "详情"
+        }
+      },
+      "ScanDetail": {
+        "totalScanCount": "总扫描次数：",
+        "localNetwork": "局域网",
+        "columns": {
+          "date": "日期",
+          "scanCount": "扫描次数"
+        }
+      },
+      "DateRange": {
+        "today": "今日",
+        "yesterday": "昨日"
+      },
+      "AdvancedConfig": {
+        "tabs": {
+          "rule": "拦截规则",
+          "cleanup": "数据清理"
+        },
+        "form": {
+          "scanTime": "扫描时间",
+          "accessCount": "访问次数",
+          "cleanupDays": "扫描天数",
+          "minuteUnit": "分钟",
+          "countUnit": "次",
+          "cleanupUnit": "天",
+          "cleanupTip": "扫描数据将保留 {days} 天，超过保留天数的数据将自动清理。",
+          "save": "保存"
+        },
+        "validation": {
+          "scanTime": "请输入扫描时间",
+          "accessCount": "请输入访问次数",
+          "cleanupDays": "请输入最大天数"
         }
       }
     }

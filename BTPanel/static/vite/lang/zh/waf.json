@@ -888,7 +888,9 @@
 			"config_205": "在线编辑【{0}】",
 			"config_206": "编辑规则【{0}】",
 			"config_207": "过滤利用Cookie发起的渗透攻击",
-			"config_208": "过滤常见扫描测试工具的渗透测试"
+			"config_208": "过滤常见扫描测试工具的渗透测试",
+			"config_209": "护网模式",
+			"config_210": "只读模式，请勿在非攻防演练时开启，开启后将会影响用户登录、支付、搜索、注册、评论等功能"
 		},
 		"Install": {
 			"index_1": "提示：可以在面板设置中关闭此页面",
@@ -900,6 +902,65 @@
 			"index_7": "阻止黑客",
 			"index_8": "立即安装",
 			"index_9": "立即购买"
+		},
+		"ProtectionScreen": {
+			"defaultTitle": "aaPanel WAF大屏",
+			"setting": {
+				"title": "大屏设置",
+				"monitorTitle": "监控标题",
+				"monitorTitlePlaceholder": "请输入监控标题",
+				"serverCoords": "服务器经纬度",
+				"longitude": "经度",
+				"longitudePlaceholder": "请输入经度，如 116.395645",
+				"latitude": "纬度",
+				"latitudePlaceholder": "请输入纬度，如 39.929986",
+				"currentCoords": "当前坐标",
+				"locationTip": "位置仅供参考，并非准确位置。",
+				"titleRequired": "请输入监控标题",
+				"saveFailed": "保存失败",
+				"invalidCoords": "请输入有效的经纬度",
+				"saveSuccess": "保存成功"
+			},
+			"stats": {
+				"todayRequests": "今日请求数",
+				"maliciousRequests": "恶意请求数",
+				"totalIntercepts": "总拦截",
+				"todayIntercepts": "今日拦截"
+			},
+			"actions": {
+				"countdownRefresh": "倒计时刷新",
+				"countdown": "倒计时",
+				"fullscreen": "全屏",
+				"setting": "设置"
+			},
+			"realtime": {
+				"title": "实时WEB防护",
+				"empty": "暂无实时防护数据"
+			},
+			"attackDetail": {
+				"attackIp": "攻击IP",
+				"attackType": "攻击类型：",
+				"domain": "域名：",
+				"time": "时间：",
+				"empty": "暂无攻击详情"
+			},
+			"chart": {
+				"realtimeQps": "实时QPS",
+				"time": "时间",
+				"qps": "QPS",
+				"sevenDayTrend": "7天拦截趋势图",
+				"attackTime": "攻击时间",
+				"attackCount": "攻击次数",
+				"interceptTypeToday": "拦截类型（今日）",
+				"pieValue": "{0}/次，{1}%",
+				"noInterceptDataToday": "今日暂无拦截数据"
+			},
+			"map": {
+				"country": "国家",
+				"count": "次数",
+				"ipTotal": "IP总数",
+				"unknown": "未知"
+			}
 		},
 		"Api": {
 			"overview_1": "正在一键激活正在进行中，请稍候...",

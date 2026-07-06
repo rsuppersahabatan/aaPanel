@@ -137,7 +137,7 @@
 	<body>
 		<div class="bt-warp bge6">
 			<a style="display: none" id="panel_debug" data="{{g['debug']}}" data-pyversion="{{g['pyversion']}}"></a>
-			<a style="display: none" id="request_token_head" token="{{session['request_token_head']}}"></a>
+			<a style="display: none" id="request_token_head" token="{{g.csrf_display_token|default('')}}"></a>
 			<div id="container" class="container-fluid">
 				<div class="sidebar-scroll" id="showMainView">
 					<!-- <div class="sidebar-auto">

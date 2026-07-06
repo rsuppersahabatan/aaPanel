@@ -876,7 +876,9 @@
 			"config_205": "Edit en ligne [{0}]",
 			"config_206": "Modifier la règle [{0}]",
 			"config_207": "Filtrez les attaques de pénétration à l'aide de cookies",
-			"config_208": "Test de pénétration de filtre pour les outils de test de scan communs"
+			"config_208": "Test de pénétration de filtre pour les outils de test de scan communs",
+			"config_209": "Mode lecture seule",
+			"config_210": "Mode lecture seule. Ne l'activez pas hors des exercices d'attaque et de défense. La connexion, le paiement, la recherche, l'inscription, les commentaires et d'autres fonctions peuvent être affectés."
 		},
 		"Install": {
 			"index_1": "Conseil: cette page peut être désactivée dans les paramètres du panneau",
@@ -888,6 +890,65 @@
 			"index_7": "Arrêter les pirates",
 			"index_8": "Installer maintenant",
 			"index_9": "Acheter maintenant"
+		},
+		"ProtectionScreen": {
+			"defaultTitle": "Tableau de bord WAF aaPanel",
+			"setting": {
+				"title": "Paramètres du tableau",
+				"monitorTitle": "Titre du moniteur",
+				"monitorTitlePlaceholder": "Saisir le titre du moniteur",
+				"serverCoords": "Coordonnées du serveur",
+				"longitude": "Longitude",
+				"longitudePlaceholder": "Saisir la longitude, ex. 116.395645",
+				"latitude": "Latitude",
+				"latitudePlaceholder": "Saisir la latitude, ex. 39.929986",
+				"currentCoords": "Coordonnées",
+				"locationTip": "La position est indicative et peut être inexacte.",
+				"titleRequired": "Saisir le titre du moniteur",
+				"saveFailed": "Échec de l’enregistrement",
+				"invalidCoords": "Saisir une longitude et une latitude valides",
+				"saveSuccess": "Enregistré avec succès"
+			},
+			"stats": {
+				"todayRequests": "Req. du jour",
+				"maliciousRequests": "Req. malveillantes",
+				"totalIntercepts": "Blocages totaux",
+				"todayIntercepts": "Blocages du jour"
+			},
+			"actions": {
+				"countdownRefresh": "Actualisation compte à rebours",
+				"countdown": "Compte à rebours",
+				"fullscreen": "Plein écran",
+				"setting": "Paramètres"
+			},
+			"realtime": {
+				"title": "Défense Web en direct",
+				"empty": "Aucune donnée de protection en temps réel"
+			},
+			"attackDetail": {
+				"attackIp": "IP d’attaque",
+				"attackType": "Type : ",
+				"domain": "Domaine : ",
+				"time": "Heure : ",
+				"empty": "Aucun détail d’attaque"
+			},
+			"chart": {
+				"realtimeQps": "QPS temps réel",
+				"time": "Heure",
+				"qps": "QPS",
+				"sevenDayTrend": "Blocages 7 jours",
+				"attackTime": "Heure d’attaque",
+				"attackCount": "Nombre d’attaques",
+				"interceptTypeToday": "Types de blocage",
+				"pieValue": "{0} fois, {1}%",
+				"noInterceptDataToday": "Aucune donnée de blocage aujourd’hui"
+			},
+			"map": {
+				"country": "Pays",
+				"count": "Nombre",
+				"ipTotal": "Total IP",
+				"unknown": "Inconnu"
+			}
 		},
 		"Api": {
 			"overview_1": "Activation en un clic en cours, veuillez patienter ...",

@@ -59,7 +59,7 @@ class CreateSSLMain:
             "access_key":userInfo['access_key'],
             "panel":1
         }
-        cert_api = 'https://api.aapanel.com/aapanel_cert'
+        cert_api = f'{public.OfficialApiUrlBase()}/aapanel_cert'
         result = json.loads(public.httpPost(cert_api,{'data': json.dumps(pdata)}))
         if 'status' in result:
             if result['status']:

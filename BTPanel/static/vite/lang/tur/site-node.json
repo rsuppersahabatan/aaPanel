@@ -85,6 +85,9 @@
 		"index_83": "After starting selected projects in batches, the projects will be accessible",
 		"index_84": "After stopping selected projects in batches, the projects will stop running",
 		"index_85": "After restarting selected projects in batches, the projects will be restarted",
-		"index_86": "Batch operating, please wait..."
+		"index_86": "Batch operating, please wait...",
+		"index_87": "Yedekleme",
+		"index_88": "Yedekleme [{0}]",
+		"index_89": "Geri yükleniyor, lütfen bekleyin..."
 	}
 }

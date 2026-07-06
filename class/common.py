@@ -47,7 +47,7 @@ class panelSetup:
             if ua.find('spider') != -1 or g.ua.find('bot') != -1:
                 return abort(403)
 
-        g.version = '8.10.0'
+        g.version = '8.16.0'
         g.title = public.GetConfigValue('title')
         g.uri = request.path
         g.debug = os.path.exists('data/debug.pl')
@@ -136,7 +136,7 @@ class panelAdmin(panelSetup):
             session['brand'] = public.GetConfigValue('brand')
             session['product'] = public.GetConfigValue('product')
             session['rootPath'] = '/www'
-            session['download_url'] = 'https://node.aapanel.com'
+            session['download_url'] = public.OfficialDownloadBase()
             session['setupPath'] = session['rootPath'] + '/server'
             session['logsPath'] = '/www/wwwlogs'
             session['yaer'] = datetime.now().year

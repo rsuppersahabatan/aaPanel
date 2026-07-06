@@ -12,24 +12,32 @@ import public
 from BTPanel import app
 from acme_v2 import acme_v2
 from public.validate import Param
-from ssl_domainModelV2.api import DomainObject
-from ssl_domainModelV2.model import DnsDomainProvider, DnsDomainSSL, DnsDomainRecord
-from ssl_domainModelV2.service import CertHandler, SyncService
+from class_v2.ssl_domainModelV2.api import DomainObject
+from class_v2.ssl_domainModelV2.model import DnsDomainProvider, DnsDomainSSL, DnsDomainRecord
+from class_v2.ssl_domainModelV2.service import CertHandler, SyncService
 from panelDnsapi import extract_zone
 
 
 # noinspection PyUnusedLocal
 class BusinessSSL(object):
-    __BINDURL = f"{public.OfficialApiBase()}/api/user"  # 获取token 获取官网token
-    __APIURL = f"{public.OfficialApiBase()}/api"
-
-    __CODEURL = "https://wafapi.aapanel.com/Auth/GetBindCode"  # 获取绑定验证码
     __UPATH = "data/userInfo.json"
     __PUBKEY = "data/public.key"
 
     __userInfo = {}
     __PDATA = None
     _check_url = None
+
+    @property
+    def __BINDURL(self):
+        return f"{public.OfficialApiBase()}/api/user"  # 获取token 获取官网token
+
+    @property
+    def __APIURL(self):
+        return f"{public.OfficialApiBase()}/api"
+
+    @property
+    def __CODEURL(self):
+        return f"{public.OfficialWafBase()}/Auth/GetBindCode"  # 获取绑定验证码
 
     def __init__(self):
         pdata = {

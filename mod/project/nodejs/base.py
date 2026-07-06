@@ -366,6 +366,9 @@ class NodeJs():
             except ValueError:
                 res_domains.append({"name": domain, "status": False, "msg": 'Incorrect domain name format'})
                 continue
+            if int(domain_arr[1]) == 443:
+                res_domains.append({"name": domain, "status": False, "msg": 'Port 443 is not allowed for Node.js projects'})
+                continue
             if not public.M('domain').where('name=? and port=?', (domain_arr[0], domain_arr[1])).count():
                 public.M('domain').add('name,pid,port,addtime',
                                        (domain_arr[0], project_id, domain_arr[1], public.getDate()))

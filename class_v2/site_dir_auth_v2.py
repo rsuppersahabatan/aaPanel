@@ -302,7 +302,10 @@ class SiteDirAuth:
                                                                                                        setup_path=self.setup_path,
                                                                                                        site_name=site_name,
                                                                                                        name=name)
-            os.remove(file_path)
+            try:
+                os.remove(file_path)
+            except:
+                pass
         if not conf:
             self.set_conf(site_name,"delete")
         if not hasattr(get,'multiple'):

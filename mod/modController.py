@@ -13,6 +13,7 @@
 import json
 import public
 import re
+import sys
 
 
 class Controller:
@@ -79,9 +80,23 @@ class Controller:
                 return public.return_data(False, {}, error_msg='The pre-HOOK interrupts the operation')
 
         # 调用处理方法
-        # result = run_object(pdata)
-        import PluginLoader
-        result = PluginLoader.module_run("{}/{}".format(module_name, sub_mod_name), def_name, pdata)
+        main_class = "main"
+        import public.PluginLoader as plugin_loader
+        mod_file = f"{public.get_panel_path()}/mod/project/{module_name}/{sub_mod_name}Mod.py"
+        plugin_class = plugin_loader.get_module(mod_file)
+        # 重载
+        if not hasattr(plugin_class, main_class):
+            if mod_file in sys.modules:
+                del sys.modules[mod_file]
+            plugin_class = plugin_loader.get_module(mod_file)
+        try:
+            plugin_object = getattr(plugin_class, main_class)()
+            result = getattr(plugin_object, def_name)(pdata)
+        except:
+            # fallback 原方法
+            import PluginLoader # noqa
+            result = PluginLoader.module_run("{}/{}".format(module_name, sub_mod_name), def_name, pdata)
+
         if isinstance(result, dict):
             if 'status' in result and result['status'] == False and 'msg' in result:
                 if isinstance(result['msg'], str):

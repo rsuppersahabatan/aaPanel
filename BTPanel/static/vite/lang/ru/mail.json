@@ -452,6 +452,78 @@
 			"index_31": "Массовое создание пользователей",
 			"index_32": "Случайные символы",
 			"index_33": "Случайные числа"
+		},
+		"BillionMail": {
+			"Service": {
+				"name": "Billion Mail",
+				"latest": "Последняя",
+				"checking": "Проверка",
+				"stopped": "Остановлено",
+				"running": "Работает",
+				"version": "Версия: {0}"
+			},
+			"Preview": {
+				"paused": "BillionMail приостановлен",
+				"settingsTitle": "Настройки Billion Mail"
+			},
+			"Api": {
+				"starting": "Запуск, подождите...",
+				"stopping": "Остановка, подождите...",
+				"restarting": "Перезапуск, подождите...",
+				"uninstalling": "Удаление, подождите..."
+			},
+			"Install": {
+				"title": "Установить BillionMail",
+				"heroLine1": "Самостоятельный email-маркетинг",
+				"heroLine2": "просто и удобно",
+				"description": "Запустите собственный почтовый сервер и маркетинговую платформу за несколько кликов. Управляйте кампаниями, списками рассылки, аналитикой и доставляемостью, сохраняя полный контроль над инфраструктурой.",
+				"featureCampaigns": "Кампании",
+				"featureMailingLists": "Списки рассылки",
+				"featureAnalytics": "Аналитика",
+				"featureDeliverability": "Доставляемость",
+				"featureOwnership": "Полный контроль",
+				"installBillionMail": "Установить BillionMail",
+				"installClassicMail": "Установить ClassicMail",
+				"versionTag": "Последняя / {0} / Docker",
+				"recommended": "Рекомендуется",
+				"legacy": "Устаревшая",
+				"classicName": "ClassicMail",
+				"billionMailDesc": "Современная самостоятельно размещаемая платформа email-маркетинга с полной аналитикой и управлением кампаниями.",
+				"classicMailDesc": "Стабильный устаревший почтовый сервер для старых систем. Базовая отправка и только необходимые функции.",
+				"legacyCompatibility": "Совместимость с устаревшей версией",
+				"bannerPreview": "Предпросмотр панели BillionMail"
+			},
+			"Guide": {
+				"title": "Установка BillionMail",
+				"minimize": "Свернуть",
+				"close": "Закрыть",
+				"restore": "Восстановить",
+				"startInstall": "Начать установку",
+				"config": "Настройка",
+				"installer": "Установщик BillionMail",
+				"completed": "Завершено {0}%",
+				"failed": "Установка не удалась. Проверьте журнал задачи и повторите попытку.",
+				"startingInstall": "Запуск установки",
+				"fetchingLogs": "Получение журналов установки...",
+				"waitingLogs": "Ожидание журналов установки...",
+				"processing": "Обработка",
+				"installedTitle": "BillionMail успешно установлен",
+				"installingTitle": "Установка BillionMail",
+				"readyTitle": "Готово к установке BillionMail",
+				"readyMinimized": "Готово к началу установки.",
+				"serviceReady": "Почтовая служба готова.",
+				"preparing": "Подготовка почтовых служб.",
+				"progressDescription": "Получение журналов установки во время подготовки почтовых служб.",
+				"readyDescription": "Начните с настроек по умолчанию или откройте конфигурацию для настройки установки.",
+				"successDescription": "Почтовая служба готова. Продолжите настройку консоли.",
+				"installPath": "Путь установки",
+				"serviceStatus": "Состояние службы",
+				"version": "Версия",
+				"open": "Открыть",
+				"configurationParameters": "Параметры конфигурации",
+				"active": "Активно",
+				"successTip": "После установки откройте консоль BillionMail и завершите настройку домена, DNS и проверки отправителя."
+			}
 		}
 	}
 }

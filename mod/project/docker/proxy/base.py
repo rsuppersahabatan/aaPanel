@@ -1670,7 +1670,7 @@ server {{
                 get.proxy_json_conf["https_port"] = "443"
             result_data["https_port"] = get.proxy_json_conf["https_port"]
         else:
-            result_data["https_port"] = "未开启HTTPS"
+            result_data["https_port"] = "HTTPS not enabled"
 
             # 2024/4/20 上午9:21 domain_list里面没有的域名健康状态显示为0
         for domain in result_data["domain_list"]:
@@ -3390,15 +3390,15 @@ server {{
         '''
         get.site_name = get.get("site_name", "")
         if get.site_name == "":
-            return public.returnResult(status=False, msg="site_name不能为空！")
+            return public.returnResult(status=False, msg="site_name cannot be empty!")
 
         get.https_port = get.get("https_port", "443")
         if not public.checkPort(get.https_port) and get.https_port != "443":
-            return public.returnResult(status=False, msg="https端口【{}】不合法！".format(get.https_port))
+            return public.returnResult(status=False, msg="HTTPS port [{}] is invalid!".format(get.https_port))
 
         get.proxy_json_conf = self.read_json_conf(get)
         if not get.proxy_json_conf:
-            return public.returnResult(status=False, msg="读取配置文件失败，请删除网站重新添加！")
+            return public.returnResult(status=False, msg="Failed to read configuration file, please delete the site and re-add it!")
 
         get.proxy_json_conf["https_port"] = get.https_port
 
@@ -3406,7 +3406,7 @@ server {{
         if not update_result["status"]:
             return public.returnResult(status=False, msg=update_result["msg"])
 
-        return public.returnResult(msg="设置成功！")
+        return public.returnResult(msg="Settings saved successfully!")
 
     # 2024/4/23 下午2:12 保存并重新生成新的nginx配置文件
     def update_conf(self, get):

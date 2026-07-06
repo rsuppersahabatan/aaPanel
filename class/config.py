@@ -20,6 +20,53 @@ try:
     from BTPanel import session,admin_path_checks,g,request,cache
     import send_mail
 except:pass
+
+_JSON_UNSAFE = object()
+
+
+def _json_safe_value(value, depth=0):
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if depth >= 4:
+        return _JSON_UNSAFE
+    if isinstance(value, (list, tuple)):
+        safe_list = []
+        for item in value:
+            safe_item = _json_safe_value(item, depth + 1)
+            if safe_item is not _JSON_UNSAFE:
+                safe_list.append(safe_item)
+        return safe_list
+    if isinstance(value, dict):
+        safe_dict = {}
+        for key, item in value.items():
+            safe_item = _json_safe_value(item, depth + 1)
+            if safe_item is not _JSON_UNSAFE:
+                safe_dict[str(key)] = safe_item
+        return safe_dict
+    return _JSON_UNSAFE
+
+
+def _get_panel_ssl_switch_session():
+    session_data = {}
+    for key, value in dict(session).items():
+        safe_value = _json_safe_value(value)
+        if safe_value is not _JSON_UNSAFE:
+            session_data[str(key)] = safe_value
+    return session_data
+
+
+def _reload_panel_webserver():
+    try:
+        import webserver
+        return webserver.webserver().run_webserver()
+    except Exception as e:
+        try:
+            public.print_log('reload panel webserver failed: {}'.format(e))
+        except:
+            pass
+    return False
+
+
 class config:
     _setup_path = "/www/server/panel"
     _key_file = _setup_path+"/data/two_step_auth.txt"
@@ -981,6 +1028,27 @@ class config:
             if os.path.exists(sslConf) and not 'cert_type' in get:
                 public.ExecShell('rm -f ' + sslConf + '&& rm -f /www/server/panel/ssl/*')
                 g.rm_ssl = True
+                try:
+                    switch_token = public.GetRandomString(48)
+                    switch_data = {
+                        "token": switch_token,
+                        "expires": int(time.time()) + 180,
+                        "client_ip": public.GetClientIp(),
+                        "user_agent": request.headers.get('User-Agent', ''),
+                        "session": _get_panel_ssl_switch_session()
+                    }
+                    public.writeFile('{}/data/panel_ssl_switch.json'.format(public.get_panel_path()), json.dumps(switch_data))
+                    g.panel_ssl_switch_token = switch_token
+                except:
+                    pass
+                try:
+                    from flask import current_app
+                    current_app.config['SSL'] = False
+                    current_app.config['SESSION_COOKIE_SECURE'] = False
+                except:
+                    pass
+                _reload_panel_webserver()
+                public.reload_panel()
                 return public.return_msg_gettext(True, 'SSL turned off，Please use http protocol to access the panel!')
             else:
                 public.ExecShell('btpip install cffi')
@@ -1001,6 +1069,15 @@ class config:
                 except:
                     return public.return_msg_gettext(False,
                                                      'Error, unable to auto install pyOpenSSL!<p>Plesea try to manually install: pip install pyOpenSSL</p>')
+                try:
+                    from flask import current_app
+                    current_app.config['SSL'] = True
+                    current_app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+                    current_app.config['SESSION_COOKIE_SECURE'] = True
+                except:
+                    pass
+                _reload_panel_webserver()
+                public.reload_panel()
                 return public.return_msg_gettext(True,
                                                  'SSL is turned on, plesea use https protocol to access the panel!')
     #自签证书
@@ -1041,7 +1118,7 @@ class config:
             "access_key": 'B' * 32,
             "panel": 1
         }
-        cert_api = 'https://api.aapanel.com/aapanel_cert'
+        cert_api = f'{public.OfficialApiUrlBase()}/aapanel_cert'
         result = json.loads(public.httpPost(cert_api, {'data': json.dumps(pdata)}))
         if 'status' in result:
             if result['status']:
@@ -3714,7 +3791,7 @@ class config:
         # 提交
         if not public.cache_get(pkey):
             try:
-                public.run_thread(public.httpPost("https://geterror.aapanel.com/bt_error/index.php", error_infos))
+                public.run_thread(public.httpPost(f"{public.OfficialGetErrorBase()}/bt_error/index.php", error_infos))
                 public.cache_set(pkey, 1, 1800)
             except Exception as e:
                 pass

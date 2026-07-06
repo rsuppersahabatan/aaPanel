@@ -465,6 +465,99 @@
 			"Index_5": "사용자를 선택하세요",
 			"Index_6": "이 사용자를 삭제 하시겠습니까?"
 		},
+		"ServerSafe": {
+			"title": "서버 보안",
+			"sshProtectionConfiguration": "SSH 보호 구성",
+			"sshProtectionLog": "SSH 보호 로그",
+			"securityConfiguration": "보안 구성",
+			"totalBannedIp": "총 차단된 IP 수",
+			"totalFailedConnection": "총 연결 실패",
+			"currentBannedIp": "현재 금지된 IP",
+			"currentFailedConnection": "현재 연결 실패",
+			"statusCodeAccessDenied": "403 - Access Denied",
+			"statusCodePageNotFound": "404 - Page Not Found",
+			"statusCodeInvalidRequest": "416 - Invalid Request",
+			"statusCodeClientTimeout": "408 - Client Timeout",
+			"statusCodeClientRequestError": "400 - Client Request Error",
+			"statusCodeUnauthorizedAccess": "401 - Unauthorized Access",
+			"sshKeyLogin": "SSH 키 로그인",
+			"enableSshKeyBeforeView": "먼저 ssh 키 로그인을 활성화 한 다음 키를 확인하세요.",
+			"enableSshKeyBeforeDownload": "먼저 SSH 키 로그인을 활성화 한 다음 키를 다운로드하세요.",
+			"gettingKeyInfo": "주요 정보를 얻으려면 잠깐만 ...",
+			"loading": "로드, 잠깐만 ...",
+			"lastFiveLoginRecords": "최근 5개 로그인 기록",
+			"viewMore": "더 보기",
+			"ip": "IP",
+			"loginTime": "로그인 시간",
+			"port": "포트",
+			"success": "성공",
+			"failure": "실패",
+			"browser": "브라우저",
+			"blockIpConfirm": "이 IP를 차단하면이 IP가 더 이상 서버에 액세스 할 수 없습니다.",
+			"unblockIpConfirm": "이 IP를 차단 해제하면이 IP에서 서버에 대한 액세스가 복원됩니다.",
+			"manualBlockBrief": "SSH 로그인 로그 페이지 IP 매뉴얼 차단을 클릭하세요",
+			"safetyRating": "보안 수준",
+			"sshPortChange": "SSH 포트 변경 내용",
+			"recommendedNon22Port": "권장 사항: 비22 포트 사용",
+			"modifyDefaultSshPort": "악성 검색을 방지하기 위해 기본 SSH 포트 수정",
+			"important": "중요",
+			"apply": "적용",
+			"passwordComplexity": "암호 복잡성",
+			"recommendedComplexityLevel": "권장 사항: 3단계 이상 사용",
+			"passwordComplexityDesc": "암호 복잡성 검사를 활성화합니다. 현재 복잡성 수준에는 숫자, 대문자, 소문자 및 특수 문자 {a} 유형의 문자가 포함됩니다.",
+			"complexityLevel": "복잡도 등급",
+			"passwordLengthLimit": "암호 길이 제한",
+			"recommendedPasswordLength": "권장 사항: 9-20자의 암호 사용",
+			"setMinimumPasswordLength": "최소 암호 길이 요구 사항 설정",
+			"minimumLength": "최소 길이",
+			"sshLoginAlert": "SSH 로그인 경고",
+			"recommendedSshLoginAlerts": "권장 사항: SSH 로그인 알림 설정",
+			"sendSshLoginAlerts": "SSH 로그인 시 경고 알림 보내기",
+			"configured": "구성됨",
+			"configureAlert": "경고 구성",
+			"sshBruteForceProtection": "SSH 폭력 보호",
+			"recommendedSshBruteForceProtection": "권장 사항: SSH 폭력 보호 설정",
+			"sshBruteForceDesc": "백그라운드를 열어 배포하여 폭력적인 공격 해결 방지",
+			"panelLoginAlert": "패널 로그인 경고",
+			"recommendedPanelLoginAlerts": "권장 사항: 패널 로그인 경고 사용",
+			"sendPanelLoginAlerts": "패널 로그인 시 경고 알림 보내기",
+			"panelGoogleAuthenticatorLogin": "패널 Google 인증기 로그인",
+			"recommendedGoogleAuthenticatorLogin": "권장 사항: Google 인증 로그인 사용",
+			"googleAuthenticatorDesc": "보안을 강화하기 위해 Google 인증기 로그인 사용",
+			"notLoggedInStatusCode": "로그인하지 않은 응답 상태 코드",
+			"recommendedStatusCode404": "권장 사항: 404를 응답 코드로 설정",
+			"notLoggedInStatusCodeDesc": "보안 포털이 올바르게 반환되지 않은 상태",
+			"panelSsl": "패널 SSL",
+			"recommendedPanelHttps": "권장 사항: 패널 HTTPS 활성화",
+			"panelHttpsDesc": "HTTPS 액세스 활성화(설정 후 패널이 다시 시작됨)",
+			"rootPasswordLoginSettings": "루트 비밀번호 로그인 설정",
+			"recommendedOnlyKeyLogin": "권장 사항: 키로만 로그인",
+			"recommendedOnlyAllowKeyLogin": "키 로그인만 허용하는 것이 좋습니다.",
+			"onlyKeyLogin": "키만 로그인",
+			"onlyCommandExecution": "명령만 실행",
+			"passwordAndKeyLogin": "암호 및 키 로그인 + 키",
+			"prohibitedLogin": "로그인 금지",
+			"rootKeySettings": "루트 키 설정",
+			"rootKeyDesc": "aaPanel 키 사용, 보기 및 다운로드",
+			"viewKey": "키 보기",
+			"downloadKey": "키 다운로드",
+			"maximumRetryTimes": "최대 재시도 횟수",
+			"period": "기간",
+			"prohibitionTime": "Prohibition time",
+			"sshProtectionConfigDesc": "SSHD 서비스 로그를 모니터링하여 IP가 설정된 시간 (300초) 내에 최대 재시도 횟수 (5회) 를 초과하면 86400초 동안 IP 액세스를 차단합니다.",
+			"sshLoginSuccessful": "SSH 로그인 성공",
+			"sshLoginFailed": "SSH 로그인 실패",
+			"days": "일",
+			"lastLoginInformation": "마지막 로그인 정보",
+			"time": "시간",
+			"sshLogin": "SSH 로그인",
+			"panelLogin": "패널 로그인",
+			"sshProtection": "SSH 보호",
+			"sshProtectionNotInstalled": "SSH 보호 기능이 설치되지 않았습니다.",
+			"sshProtectionInstallDesc": "SSH 보호 기능을 설치하면 악성 로그인 시도를 효과적으로 방지할 수 있습니다.",
+			"required": "비어있을 수 없습니다",
+			"googleAuthBinding": "Google 인증 바인딩"
+		},
 		"SiteSecurity": {
 			"Header": {
 				"scanning": "검사 중",
@@ -527,23 +620,6 @@
 				"middle": "중간",
 				"high": "높음"
 			},
-			"Project_Info": {
-				"overviewTitle": "개요",
-				"features": {
-					"scan": {
-						"title": "강력한 무료 통합 침입 검사",
-						"desc": "웹사이트 침입 위험을 차단하기 위한 포괄적인 무료 검사를 제공합니다."
-					},
-					"trojan": {
-						"title": "위험한 트로이 목마 정밀 검사",
-						"desc": "심층 스캔을 통해 숨겨진 위협을 정확하게 탐지합니다."
-					},
-					"log": {
-						"title": "전문적인 웹사이트 접속 로그 분석",
-						"desc": "로그 분석을 통해 이상 징후와 보안 리스크를 찾아냅니다."
-					}
-				}
-			},
 			"Info": {
 				"overviewTitle": "개요",
 				"features": {
@@ -559,6 +635,113 @@
 						"title": "웹사이트 접속 로그 전문 분석",
 						"desc": "로그 분석을 통해 이상 징후 및 보안 리스크를 사전에 발견합니다"
 					}
+				}
+			}
+		},
+		"NetworkScan": {
+			"Tabs": {
+				"overview": "Overview",
+				"blocked": "Blocked Records",
+				"operationLog": "Operation Log",
+				"realtimeLog": "Real-time Log"
+			},
+			"Conversion": {
+				"title": "Scan Detection - Features",
+				"feature1": "Identify malicious scan IPs 24/7",
+				"feature2": "Quickly detect and block abnormal traffic",
+				"buttonSetup": "Install Now",
+				"buttonRenew": "Buy Now"
+			},
+			"Overview": {
+				"title": "Scan Overview",
+				"todayScanCount": "Today's Scan Count",
+				"todayIpCount": "Today's IP Count",
+				"totalScanCount": "Total Scan Count",
+				"scanSwitch": "Scan Detection",
+				"refresh": "Refresh",
+				"export": "Export",
+				"advancedConfig": "Advanced Config",
+				"durationText": "{minutes}m {seconds}s",
+				"durationOverflow": "999+h",
+				"columns": {
+					"scanIp": "Scan IP",
+					"scanType": "Scan Type",
+					"todayScanCount": "Today's Scans",
+					"totalScanCount": "Total Scans",
+					"scannedPorts": "Scanned Ports",
+					"scanStartTime": "Scan Start Time",
+					"scanDuration": "Scan Duration"
+				},
+				"actions": {
+					"details": "Details",
+					"block": "Block"
+				},
+				"dialogs": {
+					"scanDetail": "{ip} Scan Details",
+					"blockTitle": "Block IP",
+					"blockContent": "Block {ip} for 24 hours?",
+					"exportTitle": "Export IP List",
+					"exportContent": "Export the current scan IP list?",
+					"batchBlockTitle": "Batch Block",
+					"batchBlockDesc": "Batch block selected IPs?",
+					"advancedConfigTitle": "Advanced Config"
+				}
+			},
+			"Blocked": {
+				"columns": {
+					"ip": "IP",
+					"source": "Source",
+					"reason": "Reason"
+				},
+				"actions": {
+					"unlock": "Unblock",
+					"unlockTitle": "Unblock IP",
+					"unlockContent": "Allow {ip} to access after unblocking?",
+					"batchUnlockTitle": "Batch Unblock",
+					"batchUnlockDesc": "Batch unblock selected IPs?"
+				},
+				"defaults": {
+					"source": "Nginx Firewall",
+					"reason": "IP scan too frequent"
+				}
+			},
+			"OperationLog": {
+				"columns": {
+					"time": "Time",
+					"detail": "Detail"
+				}
+			},
+			"ScanDetail": {
+				"totalScanCount": "Total Scans:",
+				"localNetwork": "Local Network",
+				"columns": {
+					"date": "Date",
+					"scanCount": "Scan Count"
+				}
+			},
+			"DateRange": {
+				"today": "Today",
+				"yesterday": "Yesterday"
+			},
+			"AdvancedConfig": {
+				"tabs": {
+					"rule": "Block Rules",
+					"cleanup": "Data Cleanup"
+				},
+				"form": {
+					"scanTime": "Scan Time",
+					"accessCount": "Access Count",
+					"cleanupDays": "Scan Days",
+					"minuteUnit": "minutes",
+					"countUnit": "times",
+					"cleanupUnit": "days",
+					"cleanupTip": "Scan data is retained for {days} days. Older data will be cleaned automatically.",
+					"save": "Save"
+				},
+				"validation": {
+					"scanTime": "Please enter scan time",
+					"accessCount": "Please enter access count",
+					"cleanupDays": "Please enter max days"
 				}
 			}
 		}

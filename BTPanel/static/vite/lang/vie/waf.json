@@ -890,7 +890,9 @@
 			"config_205": "Chỉnh sửa trực tuyến [{0}]",
 			"config_206": "Chỉnh sửa quy tắc [{0}]",
 			"config_207": "Lọc ra các cuộc tấn công thâm nhập bằng cookie",
-			"config_208": "Bộ lọc kiểm tra thâm nhập cho các công cụ kiểm tra quét phổ biến"
+			"config_208": "Bộ lọc kiểm tra thâm nhập cho các công cụ kiểm tra quét phổ biến",
+			"config_209": "Chế độ chỉ đọc",
+			"config_210": "Chế độ chỉ đọc. Không bật ngoài các cuộc diễn tập tấn công và phòng thủ. Đăng nhập, thanh toán, tìm kiếm, đăng ký, bình luận và các chức năng khác có thể bị ảnh hưởng."
 		},
 		"Install": {
 			"index_1": "Mẹo: Có thể tắt trang này trong cài đặt bảng điều khiển",
@@ -902,6 +904,65 @@
 			"index_7": "Dừng tin tặc",
 			"index_8": "Cài đặt ngay bây giờ",
 			"index_9": "Mua ngay"
+		},
+		"ProtectionScreen": {
+			"defaultTitle": "Bảng điều khiển WAF aaPanel",
+			"setting": {
+				"title": "Cài đặt bảng",
+				"monitorTitle": "Tiêu đề giám sát",
+				"monitorTitlePlaceholder": "Nhập tiêu đề giám sát",
+				"serverCoords": "Tọa độ máy chủ",
+				"longitude": "Kinh độ",
+				"longitudePlaceholder": "Nhập kinh độ, ví dụ 116.395645",
+				"latitude": "Vĩ độ",
+				"latitudePlaceholder": "Nhập vĩ độ, ví dụ 39.929986",
+				"currentCoords": "Tọa độ",
+				"locationTip": "Vị trí chỉ để tham khảo và có thể không chính xác.",
+				"titleRequired": "Nhập tiêu đề giám sát",
+				"saveFailed": "Lưu thất bại",
+				"invalidCoords": "Nhập kinh độ và vĩ độ hợp lệ",
+				"saveSuccess": "Đã lưu thành công"
+			},
+			"stats": {
+				"todayRequests": "Yêu cầu hôm nay",
+				"maliciousRequests": "Yêu cầu độc hại",
+				"totalIntercepts": "Tổng chặn",
+				"todayIntercepts": "Chặn hôm nay"
+			},
+			"actions": {
+				"countdownRefresh": "Làm mới đếm ngược",
+				"countdown": "Đếm ngược",
+				"fullscreen": "Toàn màn hình",
+				"setting": "Cài đặt"
+			},
+			"realtime": {
+				"title": "Phòng thủ Web trực tiếp",
+				"empty": "Không có dữ liệu bảo vệ thời gian thực"
+			},
+			"attackDetail": {
+				"attackIp": "IP tấn công",
+				"attackType": "Loại: ",
+				"domain": "Tên miền: ",
+				"time": "Thời gian: ",
+				"empty": "Không có chi tiết tấn công"
+			},
+			"chart": {
+				"realtimeQps": "QPS thời gian thực",
+				"time": "Thời gian",
+				"qps": "QPS",
+				"sevenDayTrend": "Chặn 7 ngày",
+				"attackTime": "Thời gian tấn công",
+				"attackCount": "Số lần tấn công",
+				"interceptTypeToday": "Loại chặn",
+				"pieValue": "{0} lần, {1}%",
+				"noInterceptDataToday": "Hôm nay không có dữ liệu chặn"
+			},
+			"map": {
+				"country": "Quốc gia",
+				"count": "Số lần",
+				"ipTotal": "Tổng IP",
+				"unknown": "Không rõ"
+			}
 		},
 		"Api": {
 			"overview_1": "Một lần nhấp vào kích hoạt đang được tiến hành, vui lòng đợi ...",

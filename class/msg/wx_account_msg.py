@@ -118,7 +118,7 @@ class wx_account_msg:
 
     def get_web_info(self,get):
         if self.user_info is None: return public.returnMsg(False, public.lang("The user binding information was not obtained"))
-        url = "https://wafapi2.aapanel.com/api/v2/user/wx_web/info"
+        url = f"{public.OfficialWaf2Base()}/api/v2/user/wx_web/info"
         data = {
             "uid": self.user_info["uid"],
             "access_key": 'B' * 32,
@@ -140,7 +140,7 @@ class wx_account_msg:
 
     def get_web_info2(self):
         if self.user_info is None: return public.returnMsg(False, public.lang("The user binding information was not obtained"))
-        url = "https://wafapi2.aapanel.com/api/v2/user/wx_web/info"
+        url = f"{public.OfficialWaf2Base()}/api/v2/user/wx_web/info"
         data = {
             "uid": self.user_info["uid"],
             "access_key": 'B' * 32,
@@ -160,7 +160,7 @@ class wx_account_msg:
 
     def get_auth_url(self,get):
         if self.user_info is None: return public.returnMsg(False, public.lang("The user binding information was not obtained"))
-        url = "https://wafapi2.aapanel.com/api/v2/user/wx_web/get_auth_url"
+        url = f"{public.OfficialWaf2Base()}/api/v2/user/wx_web/get_auth_url"
         data = {
             "uid": self.user_info["uid"],
             "access_key": 'B' * 32,
@@ -220,7 +220,7 @@ class wx_account_msg:
             return public.returnMsg(False, public.lang("No user information was obtained"))
 
         msg,title = self.get_send_msg(msg)
-        url="https://wafapi2.aapanel.com/api/v2/user/wx_web/send_template_msg_v2"
+        url=f"{public.OfficialWaf2Base()}/api/v2/user/wx_web/send_template_msg_v2"
         datassss = {
             "first": {
                 "value": "堡塔主机告警",

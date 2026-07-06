@@ -452,6 +452,78 @@
 			"index_42": "正在編輯，請稍候...",
 			"index_43": "正在設置分類，請稍候...",
 			"index_44": "正在創建，請稍候..."
+		},
+		"BillionMail": {
+			"Service": {
+				"name": "Billion Mail",
+				"latest": "最新",
+				"checking": "檢查中",
+				"stopped": "已停止",
+				"running": "運行中",
+				"version": "版本：{0}"
+			},
+			"Preview": {
+				"paused": "BillionMail 已暫停",
+				"settingsTitle": "Billion Mail 設定"
+			},
+			"Api": {
+				"starting": "正在啟動，請稍候...",
+				"stopping": "正在停止，請稍候...",
+				"restarting": "正在重新啟動，請稍候...",
+				"uninstalling": "正在解除安裝，請稍候..."
+			},
+			"Install": {
+				"title": "安裝 BillionMail",
+				"heroLine1": "自託管郵件行銷",
+				"heroLine2": "簡單高效",
+				"description": "只需幾次點擊，即可啟動自己的郵件伺服器和行銷平台。管理行銷活動、郵件清單、資料分析和送達能力，同時完全掌控基礎設施。",
+				"featureCampaigns": "行銷活動",
+				"featureMailingLists": "郵件清單",
+				"featureAnalytics": "資料分析",
+				"featureDeliverability": "送達能力",
+				"featureOwnership": "完全掌控",
+				"installBillionMail": "安裝 BillionMail",
+				"installClassicMail": "安裝 ClassicMail",
+				"versionTag": "最新 / {0} / Docker",
+				"recommended": "推薦",
+				"legacy": "舊版",
+				"classicName": "ClassicMail",
+				"billionMailDesc": "現代化自託管郵件行銷平台，提供完整的資料分析和行銷活動管理能力。",
+				"classicMailDesc": "適用於舊系統的穩定舊版郵件服務，提供基礎發送能力和必要功能。",
+				"legacyCompatibility": "舊版相容",
+				"bannerPreview": "BillionMail 控制台預覽"
+			},
+			"Guide": {
+				"title": "BillionMail 安裝",
+				"minimize": "隱藏",
+				"close": "關閉",
+				"restore": "恢復",
+				"startInstall": "開始安裝",
+				"config": "設定",
+				"installer": "BillionMail 安裝器",
+				"completed": "已完成 {0}%",
+				"failed": "安裝失敗，請檢查任務日誌後重試。",
+				"startingInstall": "正在開始安裝",
+				"fetchingLogs": "正在取得安裝日誌...",
+				"waitingLogs": "正在等待安裝日誌...",
+				"processing": "處理中",
+				"installedTitle": "BillionMail 安裝成功",
+				"installingTitle": "正在安裝 BillionMail",
+				"readyTitle": "準備安裝 BillionMail",
+				"readyMinimized": "準備開始安裝。",
+				"serviceReady": "郵件服務已就緒。",
+				"preparing": "正在準備郵件服務。",
+				"progressDescription": "正在取得安裝日誌並準備郵件服務。",
+				"readyDescription": "使用預設設定開始安裝，或開啟設定自訂安裝參數。",
+				"successDescription": "郵件服務已就緒，請繼續完成控制台設定。",
+				"installPath": "安裝路徑",
+				"serviceStatus": "服務狀態",
+				"version": "版本",
+				"open": "開啟",
+				"configurationParameters": "設定參數",
+				"active": "已啟用",
+				"successTip": "安裝後開啟 BillionMail 控制台，完成網域、DNS 和寄件者驗證設定。"
+			}
 		}
 	}
 }

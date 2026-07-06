@@ -2266,9 +2266,7 @@ def pma_proxy(path_full=None):
         else:
             panel_pool = 'http://'
 
-    proxy_url = '{}127.0.0.1:{}/{}/'.format(
-        panel_pool, pmd[1], pmd[0]) + request.full_path.replace(
-            '/phpmyadmin/', '')
+    proxy_url = build_phpmyadmin_proxy_url(panel_pool, pmd[1], pmd[0], path_full)
     from panelHttpProxy import HttpProxy
     px = HttpProxy()
     return px.proxy(proxy_url)

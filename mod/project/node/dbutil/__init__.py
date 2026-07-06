@@ -1,5 +1,6 @@
 from .load_db import LoadSite, HttpNode, TcpNode, NodeDB
 from .node_db import Node, ServerNodeDB, ServerMonitorRepo, NodeAPPKey
+from .node_monitor_db import NodeMonitorDB
 from .file_transfer_db import FileTransfer, FileTransferDB, FileTransferTask
 # from .executor import Script, ScriptGroup, ExecutorDB, ExecutorLog, ExecutorTask
 from .node_task_flow import Script, Flow, CommandTask, CommandLog, TransferFile, TransferLog, TaskFlowsDB, \
@@ -9,6 +10,8 @@ from .node_task_flow import Script, Flow, CommandTask, CommandLog, TransferFile,
 try:
     NodeDB().init_db()
     ServerNodeDB().init_db()
+    # 节点监控管理
+    NodeMonitorDB().init_db()
     FileTransferDB().init_db()
     # ExecutorDB().init_db()
     TaskFlowsDB().init_db()

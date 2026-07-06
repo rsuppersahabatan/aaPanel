@@ -890,7 +890,9 @@
 			"config_205": "Online Edit [{0}]",
 			"config_206": "Regel [{0}] bearbeiten",
 			"config_207": "Filtern Sie die Penetrationsangriffe mit Cookies heraus",
-			"config_208": "Filterdurchdringungstests für gängige Scan -Test -Tools"
+			"config_208": "Filterdurchdringungstests für gängige Scan -Test -Tools",
+			"config_209": "Schreibgeschützter Modus",
+			"config_210": "Schreibgeschützter Modus. Aktivieren Sie ihn nicht außerhalb von Angriffs- und Verteidigungsübungen. Anmeldung, Zahlung, Suche, Registrierung, Kommentare und andere Funktionen können beeinträchtigt werden."
 		},
 		"Install": {
 			"index_1": "Tipp: Diese Seite kann in den Paneleinstellungen ausgeschaltet werden",
@@ -902,6 +904,65 @@
 			"index_7": "Hacker anhalten",
 			"index_8": "Jetzt installieren",
 			"index_9": "Jetzt kaufen"
+		},
+		"ProtectionScreen": {
+			"defaultTitle": "aaPanel WAF-Dashboard",
+			"setting": {
+				"title": "Dashboard-Einstellungen",
+				"monitorTitle": "Monitor-Titel",
+				"monitorTitlePlaceholder": "Monitor-Titel eingeben",
+				"serverCoords": "Serverkoordinaten",
+				"longitude": "Längengrad",
+				"longitudePlaceholder": "Längengrad eingeben, z. B. 116.395645",
+				"latitude": "Breitengrad",
+				"latitudePlaceholder": "Breitengrad eingeben, z. B. 39.929986",
+				"currentCoords": "Koordinaten",
+				"locationTip": "Der Standort dient nur als Referenz und ist möglicherweise ungenau.",
+				"titleRequired": "Monitor-Titel eingeben",
+				"saveFailed": "Speichern fehlgeschlagen",
+				"invalidCoords": "Gültigen Längen- und Breitengrad eingeben",
+				"saveSuccess": "Erfolgreich gespeichert"
+			},
+			"stats": {
+				"todayRequests": "Anfragen heute",
+				"maliciousRequests": "Bösartige Anfragen",
+				"totalIntercepts": "Blockierungen gesamt",
+				"todayIntercepts": "Blockierungen heute"
+			},
+			"actions": {
+				"countdownRefresh": "Countdown-Aktualisierung",
+				"countdown": "Countdown",
+				"fullscreen": "Vollbild",
+				"setting": "Einstellungen"
+			},
+			"realtime": {
+				"title": "Live-Webschutz",
+				"empty": "Keine Echtzeit-Schutzdaten"
+			},
+			"attackDetail": {
+				"attackIp": "Angriffs-IP",
+				"attackType": "Typ: ",
+				"domain": "Domain: ",
+				"time": "Zeit: ",
+				"empty": "Keine Angriffsdetails"
+			},
+			"chart": {
+				"realtimeQps": "Echtzeit-QPS",
+				"time": "Zeit",
+				"qps": "QPS",
+				"sevenDayTrend": "7-Tage-Blockierungen",
+				"attackTime": "Angriffszeit",
+				"attackCount": "Angriffszahl",
+				"interceptTypeToday": "Blockierungstypen",
+				"pieValue": "{0} Mal, {1}%",
+				"noInterceptDataToday": "Heute keine Blockierungsdaten"
+			},
+			"map": {
+				"country": "Land",
+				"count": "Anzahl",
+				"ipTotal": "IPs gesamt",
+				"unknown": "Unbekannt"
+			}
 		},
 		"Api": {
 			"overview_1": "One-Click-Aktivierung in Arbeit, bitte warte ...",

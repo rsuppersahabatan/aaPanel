@@ -117,10 +117,8 @@ def del_bak(bak_file: str) -> aap_t_simple_result:
         return aap_t_simple_result(int(data.get('status', 0)) == 0, data.get('message', {})['result'])
 
     # 其它途径备份
-    if not os.path.exists(bak_file):
-        return aap_t_simple_result(False, get_msg_gettext('File not exists'))
-
-    os.remove(bak_file)
+    if os.path.exists(bak_file):
+        os.remove(bak_file)
 
     return aap_t_simple_result(True, get_msg_gettext('Remove backup successfully'))
 

@@ -452,6 +452,78 @@
 			"index_42": "Düzenleniyor, lütfen bekleyin...",
 			"index_43": "Türler ayarlanıyor, lütfen bekleyin...",
 			"index_44": "Oluşturuluyor, lütfen bekleyin..."
+		},
+		"BillionMail": {
+			"Service": {
+				"name": "Billion Mail",
+				"latest": "En son",
+				"checking": "Kontrol ediliyor",
+				"stopped": "Durduruldu",
+				"running": "Çalışıyor",
+				"version": "Sürüm: {0}"
+			},
+			"Preview": {
+				"paused": "BillionMail duraklatıldı",
+				"settingsTitle": "Billion Mail Ayarları"
+			},
+			"Api": {
+				"starting": "Başlatılıyor, lütfen bekleyin...",
+				"stopping": "Durduruluyor, lütfen bekleyin...",
+				"restarting": "Yeniden başlatılıyor, lütfen bekleyin...",
+				"uninstalling": "Kaldırılıyor, lütfen bekleyin..."
+			},
+			"Install": {
+				"title": "BillionMail’i Kur",
+				"heroLine1": "Kendi Sunucunuzda E-posta Pazarlama",
+				"heroLine2": "Basitleştirildi",
+				"description": "Birkaç tıklamayla kendi e-posta sunucunuzu ve pazarlama platformunuzu başlatın. Altyapınız üzerinde tam kontrolü korurken kampanyaları, posta listelerini, analizleri ve teslim edilebilirliği yönetin.",
+				"featureCampaigns": "Kampanyalar",
+				"featureMailingLists": "Posta Listeleri",
+				"featureAnalytics": "Analizler",
+				"featureDeliverability": "Teslim Edilebilirlik",
+				"featureOwnership": "Tam Kontrol",
+				"installBillionMail": "BillionMail’i Kur",
+				"installClassicMail": "ClassicMail’i Kur",
+				"versionTag": "En son / {0} / Docker",
+				"recommended": "Önerilen",
+				"legacy": "Eski",
+				"classicName": "ClassicMail",
+				"billionMailDesc": "Tam analiz ve kampanya yönetimi sunan modern, kendi sunucunuzda barındırılan e-posta pazarlama platformu.",
+				"classicMailDesc": "Eski sistemler için kararlı eski e-posta sunucusu. Temel gönderim ve sınırlı temel özellikler.",
+				"legacyCompatibility": "Eski sürüm uyumluluğu",
+				"bannerPreview": "BillionMail pano önizlemesi"
+			},
+			"Guide": {
+				"title": "BillionMail Kurulumu",
+				"minimize": "Gizle",
+				"close": "Kapat",
+				"restore": "Geri yükle",
+				"startInstall": "Kurulumu Başlat",
+				"config": "Yapılandırma",
+				"installer": "BillionMail kurucusu",
+				"completed": "%{0} tamamlandı",
+				"failed": "Kurulum başarısız oldu. Lütfen görev günlüğünü kontrol edip tekrar deneyin.",
+				"startingInstall": "Kurulum başlatılıyor",
+				"fetchingLogs": "Kurulum günlükleri alınıyor...",
+				"waitingLogs": "Kurulum günlükleri bekleniyor...",
+				"processing": "İşleniyor",
+				"installedTitle": "BillionMail başarıyla kuruldu",
+				"installingTitle": "BillionMail kuruluyor",
+				"readyTitle": "BillionMail kuruluma hazır",
+				"readyMinimized": "Kurulumu başlatmaya hazır.",
+				"serviceReady": "Posta hizmeti hazır.",
+				"preparing": "Posta hizmetleri hazırlanıyor.",
+				"progressDescription": "Posta hizmetleri hazırlanırken kurulum günlükleri alınıyor.",
+				"readyDescription": "Varsayılan ayarlarla başlayın veya kurulumu özelleştirmek için yapılandırmayı açın.",
+				"successDescription": "Posta hizmeti hazır. Konsol yapılandırmasına devam edin.",
+				"installPath": "Kurulum yolu",
+				"serviceStatus": "Hizmet durumu",
+				"version": "Sürüm",
+				"open": "Aç",
+				"configurationParameters": "Yapılandırma parametreleri",
+				"active": "Aktif",
+				"successTip": "Kurulumdan sonra BillionMail konsolunu açın ve alan adı, DNS ve gönderen doğrulama ayarlarını tamamlayın."
+			}
 		}
 	}
 }

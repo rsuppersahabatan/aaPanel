@@ -2582,7 +2582,7 @@ listener SSL443 {
             return public.returnMsg(True, public.lang("Site stopped"))
         if not os.path.exists(path):
             os.makedirs(path)
-            public.downloadFile('https://node.aapanel.com/stop_en.html', path + '/index.html')
+            public.downloadFile(f'{public.OfficialDownloadBase()}/stop_en.html', path + '/index.html')
 
         # if 'This site has been closed by administrator' not in public.readFile(path + '/index.html'):
         #     public.downloadFile('http://download.bt.cn/stop_en.html', path + '/index.html')

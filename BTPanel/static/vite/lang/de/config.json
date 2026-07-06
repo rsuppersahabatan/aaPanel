@@ -123,7 +123,9 @@
 			"index_98": "CDN Proxy",
 			"index_99": "Rufen Sie die reale IP der Anforderung vom CDN -Proxy ab",
 			"iconAuto": "Favicon automatisch abrufen",
-			"iconAutoDesc": "Versucht alle 12 Stunden, das Favicon abzurufen, wenn es aktiviert ist"
+			"iconAutoDesc": "Versucht alle 12 Stunden, das Favicon abzurufen, wenn es aktiviert ist",
+			"homeAnnounce": "Home Bulletin",
+			"homeAnnounceDesc": "Show panel announcements and update notices on the home page"
 		},
 		"Safe": {
 			"index_1": "Sicherheit",

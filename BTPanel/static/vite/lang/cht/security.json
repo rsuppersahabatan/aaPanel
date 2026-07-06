@@ -239,6 +239,7 @@
 				"index_13": "SSH登錄告警",
 				"index_14": "未配置",
 				"index_15": "{0}配置",
+				"index_16": "修改",
 				"index_17": "更多SSH安全設置請使用系統加固模塊",
 				"index_18": "系統加固",
 				"index_19": "開啟SSH密鑰登錄",
@@ -464,6 +465,99 @@
 			"Index_5": "請選擇用戶",
 			"Index_6": "您確定要刪除此用戶嗎？"
 		},
+		"ServerSafe": {
+		  "title": "服務器安全",
+		  "sshProtectionConfiguration": "SSH保護配寘",
+		  "sshProtectionLog": "SSH保護日誌",
+		  "securityConfiguration": "安全配寘",
+		  "totalBannedIp": "被禁IP總數",
+		  "totalFailedConnection": "連接失敗總數",
+		  "currentBannedIp": "當前被禁IP",
+		  "currentFailedConnection": "當前連接失敗",
+		  "statusCodeAccessDenied": "403 - 拒絕訪問",
+		  "statusCodePageNotFound": "404 - 頁面不存在",
+		  "statusCodeInvalidRequest": "416 - 無效請求",
+		  "statusCodeClientTimeout": "408 - 客戶端超時",
+		  "statusCodeClientRequestError": "400 - 客戶端請求錯誤",
+		  "statusCodeUnauthorizedAccess": "401 - 未授權訪問",
+		  "sshKeyLogin": "SSH密鑰登錄",
+		  "enableSshKeyBeforeView": "請先啟用SSH密鑰登錄，然後檢查密鑰",
+		  "enableSshKeyBeforeDownload": "請先啟用SSH密鑰登錄，然後下載密鑰。",
+		  "gettingKeyInfo": "正在獲取信息，請稍候...",
+		  "loading": "正在加載，請稍候...",
+		  "lastFiveLoginRecords": "最近5條登入記錄",
+		  "viewMore": "查看更多",
+		  "ip": "IP",
+		  "loginTime": "登錄時間",
+		  "port": "端口",
+		  "success": "成功",
+		  "failure": "失敗",
+		  "browser": "瀏覽器",
+		  "blockIpConfirm": "阻止此IP後，該IP將不再允許訪問服務器，繼續嗎？",
+		  "unblockIpConfirm": "解除此IP後，將恢復對該IP的服務器訪問，繼續嗎？",
+		  "manualBlockBrief": "SSH登錄日誌頁面單擊IP手動阻塞",
+		  "safetyRating": "安全等級",
+		  "sshPortChange": "SSH埠更改",
+		  "recommendedNon22Port": "建議：使用非22埠",
+		  "modifyDefaultSshPort": "修改默認SSH埠以避免惡意掃描",
+		  "important": "重要",
+		  "apply": "應用",
+		  "passwordComplexity": "密碼複雜性",
+		  "recommendedComplexityLevel": "建議：使用大於3的級別",
+		  "passwordComplexityDesc": "啟用密碼複雜性檢查，當前複雜性級別將包含數位、大寫字母、小寫字母和特殊字元{a}類型的字元",
+		  "complexityLevel": "複雜度等級",
+		  "passwordLengthLimit": "密碼長度限制",
+		  "recommendedPasswordLength": "建議：使用長度為9-20個字元的密碼",
+		  "setMinimumPasswordLength": "設定最小密碼長度要求",
+		  "minimumLength": "最小長度",
+		  "sshLoginAlert": "SSH登入警報",
+		  "recommendedSshLoginAlerts": "建議：啟用SSH登入警報",
+		  "sendSshLoginAlerts": "SSH登入時發送警報通知",
+		  "configured": "已配寘",
+		  "configureAlert": "配寘告警",
+		  "sshBruteForceProtection": "SSH暴力保護",
+		  "recommendedSshBruteForceProtection": "推薦：啟用SSH暴力保護",
+		  "sshBruteForceDesc": "開啟後臺進行部署，防止暴力破解攻擊",
+		  "panelLoginAlert": "面板登入警報",
+		  "recommendedPanelLoginAlerts": "建議：啟用面板登入警報",
+		  "sendPanelLoginAlerts": "面板登入時發送警報通知",
+		  "panelGoogleAuthenticatorLogin": "面板Google身份驗證器登入",
+		  "recommendedGoogleAuthenticatorLogin": "推薦：啟用Google身份驗證器登入",
+		  "googleAuthenticatorDesc": "啟用Google身份驗證器登入以增强安全性",
+		  "notLoggedInStatusCode": "未登錄響應狀態程式碼",
+		  "recommendedStatusCode404": "建議：將404設定為響應程式碼",
+		  "notLoggedInStatusCodeDesc": "安全入口不正確返回的狀態",
+		  "panelSsl": "面板SSL",
+		  "recommendedPanelHttps": "建議：啟用面板HTTPS",
+		  "panelHttpsDesc": "啟用HTTPS訪問（設定後面板將重新啟動）",
+		  "rootPasswordLoginSettings": "Root密碼登入設定",
+		  "recommendedOnlyKeyLogin": "建議：僅使用金鑰登入",
+		  "recommendedOnlyAllowKeyLogin": "建議只允許金鑰登入",
+		  "onlyKeyLogin": "僅金鑰登入",
+		  "onlyCommandExecution": "僅命令執行",
+		  "passwordAndKeyLogin": "密碼和金鑰登入+金鑰",
+		  "prohibitedLogin": "禁止登入",
+		  "rootKeySettings": "根金鑰設定",
+		  "rootKeyDesc": "啟用aaPanel鍵，查看和下載",
+		  "viewKey": "查看金鑰",
+		  "downloadKey": "下載金鑰",
+		  "maximumRetryTimes": "最大重試次數",
+		  "period": "週期",
+		  "prohibitionTime": "封禁時間",
+		  "sshProtectionConfigDesc": "監控SSHD服務日誌，如果IP在設定的時間段（300秒）內超過最大重試次數（5次），則禁止IP訪問86400秒",
+		  "sshLoginSuccessful": "SSH登入成功",
+		  "sshLoginFailed": "SSH登入失敗",
+		  "days": "天",
+		  "lastLoginInformation": "上次登錄資訊",
+		  "time": "操作時間",
+		  "sshLogin": "SSH登入",
+		  "panelLogin": "面板登入",
+		  "sshProtection": "SSH保護",
+		  "sshProtectionNotInstalled": "未安裝SSH保護功能",
+		  "sshProtectionInstallDesc": "安裝SSH保護功能後，可以有效防止惡意登入嘗試",
+		  "required": "不能為空",
+		  "googleAuthBinding": "設置動態口令"
+		},
 		"SiteSecurity": {
 			"Header": {
 				"scanning": "正在掃描",
@@ -541,6 +635,113 @@
 						"title": "專業分析網站訪問日誌",
 						"desc": "通過日誌分析，挖掘訪問異常與安全隱患"
 					}
+				}
+			}
+		},
+		"NetworkScan": {
+			"Tabs": {
+				"overview": "概覽",
+				"blocked": "封鎖記錄",
+				"operationLog": "操作日誌",
+				"realtimeLog": "實時日誌"
+			},
+			"Conversion": {
+				"title": "掃描感知-功能介紹",
+				"feature1": "全天識別惡意掃描服務器的異常 IP",
+				"feature2": "快速定位異常流量並支持封鎖處置",
+				"buttonSetup": "立即安裝",
+				"buttonRenew": "立即購買"
+			},
+			"Overview": {
+				"title": "掃描概覽",
+				"todayScanCount": "今日掃描次數",
+				"todayIpCount": "今日掃描 IP 數",
+				"totalScanCount": "總掃描次數",
+				"scanSwitch": "掃描感知",
+				"refresh": "刷新",
+				"export": "導出",
+				"advancedConfig": "高級配置",
+				"durationText": "{minutes}分{seconds}秒",
+				"durationOverflow": "999+小時",
+				"columns": {
+					"scanIp": "掃描 IP",
+					"scanType": "掃描類型",
+					"todayScanCount": "今日掃描次數",
+					"totalScanCount": "總掃描次數",
+					"scannedPorts": "被掃描的端口",
+					"scanStartTime": "掃描開始時間",
+					"scanDuration": "掃描持續時間"
+				},
+				"actions": {
+					"details": "詳情",
+					"block": "封鎖"
+				},
+				"dialogs": {
+					"scanDetail": "{ip} 掃描詳情",
+					"blockTitle": "封禁 IP",
+					"blockContent": "是否封禁【{ip}】24 小時？",
+					"exportTitle": "導出 IP 列表",
+					"exportContent": "確定要導出當前掃描 IP 列表嗎？",
+					"batchBlockTitle": "批量封鎖",
+					"batchBlockDesc": "即將批量封鎖選中的 IP，是否繼續操作？",
+					"advancedConfigTitle": "高級配置"
+				}
+			},
+			"Blocked": {
+				"columns": {
+					"ip": "IP",
+					"source": "封鎖來源",
+					"reason": "封禁原因"
+				},
+				"actions": {
+					"unlock": "解封",
+					"unlockTitle": "解封 IP",
+					"unlockContent": "解封後將允許【{ip}】進行訪問，是否繼續操作？",
+					"batchUnlockTitle": "批量解封",
+					"batchUnlockDesc": "即將批量解封選中的 IP，是否繼續操作？"
+				},
+				"defaults": {
+					"source": "Nginx防火牆",
+					"reason": "IP掃描過於頻繁"
+				}
+			},
+			"OperationLog": {
+				"columns": {
+					"time": "時間",
+					"detail": "詳情"
+				}
+			},
+			"ScanDetail": {
+				"totalScanCount": "總掃描次數：",
+				"localNetwork": "局域網",
+				"columns": {
+					"date": "日期",
+					"scanCount": "掃描次數"
+				}
+			},
+			"DateRange": {
+				"today": "今日",
+				"yesterday": "昨日"
+			},
+			"AdvancedConfig": {
+				"tabs": {
+					"rule": "攔截規則",
+					"cleanup": "數據清理"
+				},
+				"form": {
+					"scanTime": "掃描時間",
+					"accessCount": "訪問次數",
+					"cleanupDays": "掃描天數",
+					"minuteUnit": "分鐘",
+					"countUnit": "次",
+					"cleanupUnit": "天",
+					"cleanupTip": "掃描數據將保留 {days} 天，超過保留天數的數據將自動清理。",
+					"save": "保存"
+				},
+				"validation": {
+					"scanTime": "請輸入掃描時間",
+					"accessCount": "請輸入訪問次數",
+					"cleanupDays": "請輸入最大天數"
 				}
 			}
 		}

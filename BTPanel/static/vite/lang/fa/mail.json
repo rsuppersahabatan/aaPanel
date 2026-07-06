@@ -452,6 +452,78 @@
 			"index_42": "در حال ویرایش، لطفا صبر کنید...",
 			"index_43": "در حال تنظیم انواع، لطفاً صبر کنید...",
 			"index_44": "در حال ایجاد، لطفا صبر کنید..."
+		},
+		"BillionMail": {
+			"Service": {
+				"name": "Billion Mail",
+				"latest": "آخرین",
+				"checking": "در حال بررسی",
+				"stopped": "متوقف شده",
+				"running": "در حال اجرا",
+				"version": "نسخه: {0}"
+			},
+			"Preview": {
+				"paused": "BillionMail متوقف شده است",
+				"settingsTitle": "تنظیمات Billion Mail"
+			},
+			"Api": {
+				"starting": "در حال شروع، لطفاً صبر کنید...",
+				"stopping": "در حال توقف، لطفاً صبر کنید...",
+				"restarting": "در حال راه‌اندازی مجدد، لطفاً صبر کنید...",
+				"uninstalling": "در حال حذف نصب، لطفاً صبر کنید..."
+			},
+			"Install": {
+				"title": "نصب BillionMail",
+				"heroLine1": "بازاریابی ایمیلی خودمیزبان",
+				"heroLine2": "ساده و آسان",
+				"description": "سرور ایمیل و پلتفرم بازاریابی خود را تنها با چند کلیک راه‌اندازی کنید. کمپین‌ها، فهرست‌های ایمیل، تحلیل‌ها و قابلیت تحویل را مدیریت کنید و کنترل کامل زیرساخت خود را حفظ کنید.",
+				"featureCampaigns": "کمپین‌ها",
+				"featureMailingLists": "فهرست‌های ایمیل",
+				"featureAnalytics": "تحلیل‌ها",
+				"featureDeliverability": "قابلیت تحویل",
+				"featureOwnership": "مالکیت کامل",
+				"installBillionMail": "نصب BillionMail",
+				"installClassicMail": "نصب ClassicMail",
+				"versionTag": "آخرین / {0} / Docker",
+				"recommended": "پیشنهادی",
+				"legacy": "قدیمی",
+				"classicName": "ClassicMail",
+				"billionMailDesc": "پلتفرم مدرن بازاریابی ایمیلی خودمیزبان با تحلیل کامل و مدیریت کمپین.",
+				"classicMailDesc": "سرور ایمیل قدیمی پایدار برای سیستم‌های قدیمی‌تر. ارسال پایه با امکانات ضروری محدود.",
+				"legacyCompatibility": "سازگاری با نسخه قدیمی",
+				"bannerPreview": "پیش‌نمایش داشبورد BillionMail"
+			},
+			"Guide": {
+				"title": "نصب BillionMail",
+				"minimize": "کوچک کردن",
+				"close": "بستن",
+				"restore": "بازگردانی",
+				"startInstall": "شروع نصب",
+				"config": "پیکربندی",
+				"installer": "نصب‌کننده BillionMail",
+				"completed": "{0}% تکمیل شد",
+				"failed": "نصب ناموفق بود. لطفاً گزارش کار را بررسی کرده و دوباره تلاش کنید.",
+				"startingInstall": "در حال شروع نصب",
+				"fetchingLogs": "در حال دریافت گزارش‌های نصب...",
+				"waitingLogs": "در انتظار گزارش‌های نصب...",
+				"processing": "در حال پردازش",
+				"installedTitle": "BillionMail با موفقیت نصب شد",
+				"installingTitle": "در حال نصب BillionMail",
+				"readyTitle": "آماده نصب BillionMail",
+				"readyMinimized": "آماده شروع نصب.",
+				"serviceReady": "سرویس ایمیل آماده است.",
+				"preparing": "در حال آماده‌سازی سرویس‌های ایمیل.",
+				"progressDescription": "در حال دریافت گزارش‌های نصب همزمان با آماده‌سازی سرویس‌های ایمیل.",
+				"readyDescription": "با تنظیمات پیش‌فرض شروع کنید یا برای سفارشی‌سازی نصب، پیکربندی را باز کنید.",
+				"successDescription": "سرویس ایمیل آماده است. پیکربندی کنسول را ادامه دهید.",
+				"installPath": "مسیر نصب",
+				"serviceStatus": "وضعیت سرویس",
+				"version": "نسخه",
+				"open": "باز کردن",
+				"configurationParameters": "پارامترهای پیکربندی",
+				"active": "فعال",
+				"successTip": "پس از نصب، کنسول BillionMail را باز کنید و تنظیمات دامنه، DNS و تأیید فرستنده را تکمیل کنید."
+			}
 		}
 	}
 }

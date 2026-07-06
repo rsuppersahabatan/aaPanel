@@ -96,7 +96,7 @@ class panelRedisDB():
                 return False
             public.ExecShell("mv /www/server/redis/redis.conf /www/server/redis/redis.conf.bak")
             public.ExecShell(
-                "wget -O /www/server/redis/redis.conf https://node.aapanel.com/conf/redis.conf;chmod 600 /www/server/redis/redis.conf;chown redis:redis /www/server/redis/redis.conf"
+                f"wget -O /www/server/redis/redis.conf {public.OfficialDownloadBase()}/conf/redis.conf;chmod 600 /www/server/redis/redis.conf;chown redis:redis /www/server/redis/redis.conf"
             )
             time.sleep(1)
             redis_conf = public.readFile("{}/redis/redis.conf".format(public.get_setup_path()))

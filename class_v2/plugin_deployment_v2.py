@@ -538,7 +538,7 @@ class plugin_deployment:
             "ext": "pathinfo,exif",
             "version": "1.6.11",
             "install": "",
-            "download": "https://node.aapanel.com/install/package/roundcubemail.zip",
+            "download": f"{public.OfficialDownloadBase()}/install/package/roundcubemail.zip",
             "password": "",
             "config": "/config/config.inc.php",
             "md5": "785660db6540692b5c0eb240b41816e9"

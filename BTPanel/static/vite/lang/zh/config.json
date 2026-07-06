@@ -123,7 +123,11 @@
       "index_98": "CDN代理",
       "index_99": "从CDN代理中获取请求的真实IP",
       "iconAuto": "自动获取网站图标",
-      "iconAutoDesc": "开启后每12小时会尝试获取网站图标"
+      "iconAutoDesc": "开启后每12小时会尝试获取网站图标",
+      "homeAnnounce": "首页公告",
+      "homeAnnounceDesc": "在首页显示面板公告、更新提醒等通知信息",
+      "serverTimezoneLabel": "服务器时区",
+      "serverTimezoneDesc": "若时区设置不正确，可能导致服务器时间不准确！"
     },
     "Safe": {
       "index_1": "安全设置",

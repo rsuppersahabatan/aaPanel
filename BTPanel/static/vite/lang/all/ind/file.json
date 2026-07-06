@@ -576,5 +576,6 @@
 	"9340c69bbad03887fd170a8884ec7081": "Batalkan favorit",
 	"067d2d3df94c6b5a34b93a9ccabf7fed": "Batalkan favorit untuk [{name}], lanjutkan?",
 	"95c6415b77c2132d3abd45cd8d93cbc3": "Pengelolaan",
-	"3131239f467b2405cc5ba4e5bcc182b3": "Silakan masukkan jalur"
+	"3131239f467b2405cc5ba4e5bcc182b3": "Silakan masukkan jalur",
+	"4be6ecea6c4c14e13a4d9ac2cac97fba": "Mentransfer file [{0}], jika file sudah ada, file akan ditimpa. Lanjutkan?"
 }

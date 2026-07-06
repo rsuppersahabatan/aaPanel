@@ -3113,6 +3113,9 @@ echo $! > {pid_file}'''.format(
             except ValueError:
                 res_domains.append({"name": domain, "status": False, "msg": 'Invalid Domain'})
                 continue
+            if int(domain_arr[1]) == 443:
+                res_domains.append({"name": domain, "status": False, "msg": 'Port 443 is not allowed for Python projects'})
+                continue
             if not public.M('domain').where('name=? AND port=?', (domain_arr[0], domain_arr[1])).count():
                 public.M('domain').add(
                     'name,pid,port,addtime',

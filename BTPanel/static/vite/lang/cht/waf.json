@@ -888,7 +888,9 @@
 			"config_205": "在線編輯【{0}】",
 			"config_206": "編輯規則【{0}】",
 			"config_207": "過濾利用餅乾發起的滲透攻擊",
-			"config_208": "過濾常見掃描測試工具的滲透測試"
+			"config_208": "過濾常見掃描測試工具的滲透測試",
+			"config_209": "護網模式",
+			"config_210": "唯讀模式，請勿在非攻防演練時開啟，開啟後將會影響使用者登入、支付、搜尋、註冊、評論等功能"
 		},
 		"Install": {
 			"index_1": "提示：可以在面板設置中關閉此頁面",
@@ -900,6 +902,65 @@
 			"index_7": "阻止黑客",
 			"index_8": "立即安裝",
 			"index_9": "立即購買"
+		},
+		"ProtectionScreen": {
+			"defaultTitle": "aaPanel WAF大屏",
+			"setting": {
+				"title": "大屏設定",
+				"monitorTitle": "監控標題",
+				"monitorTitlePlaceholder": "請輸入監控標題",
+				"serverCoords": "伺服器經緯度",
+				"longitude": "經度",
+				"longitudePlaceholder": "請輸入經度，如 116.395645",
+				"latitude": "緯度",
+				"latitudePlaceholder": "請輸入緯度，如 39.929986",
+				"currentCoords": "座標",
+				"locationTip": "位置僅供參考，並非準確位置。",
+				"titleRequired": "請輸入監控標題",
+				"saveFailed": "保存失敗",
+				"invalidCoords": "請輸入有效的經緯度",
+				"saveSuccess": "保存成功"
+			},
+			"stats": {
+				"todayRequests": "今日請求數",
+				"maliciousRequests": "惡意請求數",
+				"totalIntercepts": "總攔截",
+				"todayIntercepts": "今日攔截"
+			},
+			"actions": {
+				"countdownRefresh": "倒計時刷新",
+				"countdown": "倒計時",
+				"fullscreen": "全屏",
+				"setting": "設定"
+			},
+			"realtime": {
+				"title": "即時WEB防護",
+				"empty": "暫無即時防護數據"
+			},
+			"attackDetail": {
+				"attackIp": "攻擊IP",
+				"attackType": "攻擊類型：",
+				"domain": "域名：",
+				"time": "時間：",
+				"empty": "暫無攻擊詳情"
+			},
+			"chart": {
+				"realtimeQps": "即時QPS",
+				"time": "時間",
+				"qps": "QPS",
+				"sevenDayTrend": "7天攔截趨勢圖",
+				"attackTime": "攻擊時間",
+				"attackCount": "攻擊次數",
+				"interceptTypeToday": "攔截類型",
+				"pieValue": "{0}/次，{1}%",
+				"noInterceptDataToday": "今日暫無攔截數據"
+			},
+			"map": {
+				"country": "國家",
+				"count": "次數",
+				"ipTotal": "IP總數",
+				"unknown": "未知"
+			}
 		},
 		"Api": {
 			"overview_1": "正在一鍵激活正在進行中，請稍候...",

@@ -75,6 +75,8 @@ class userLang:
         name = post.name
         if name == "":
             return
+        if len(name) > 5:
+            return
 
         # 登录阶段不设置 只记录
         path = "/www/server/panel/BTPanel/languages/language.pl"

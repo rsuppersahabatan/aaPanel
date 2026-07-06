@@ -27,6 +27,51 @@ try:
 except:
     pass
 
+_JSON_UNSAFE = object()
+
+
+def _json_safe_value(value, depth=0):
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if depth >= 4:
+        return _JSON_UNSAFE
+    if isinstance(value, (list, tuple)):
+        safe_list = []
+        for item in value:
+            safe_item = _json_safe_value(item, depth + 1)
+            if safe_item is not _JSON_UNSAFE:
+                safe_list.append(safe_item)
+        return safe_list
+    if isinstance(value, dict):
+        safe_dict = {}
+        for key, item in value.items():
+            safe_item = _json_safe_value(item, depth + 1)
+            if safe_item is not _JSON_UNSAFE:
+                safe_dict[str(key)] = safe_item
+        return safe_dict
+    return _JSON_UNSAFE
+
+
+def _get_panel_ssl_switch_session():
+    session_data = {}
+    for key, value in dict(session).items():
+        safe_value = _json_safe_value(value)
+        if safe_value is not _JSON_UNSAFE:
+            session_data[str(key)] = safe_value
+    return session_data
+
+
+def _reload_panel_webserver():
+    try:
+        import webserver
+        return webserver.webserver().run_webserver()
+    except Exception as e:
+        try:
+            public.print_log('reload panel webserver failed: {}'.format(e))
+        except:
+            pass
+    return False
+
 
 class config:
     __mail_list = []
@@ -1071,7 +1116,7 @@ class config:
         @author hezhihong
         """
         # 取国际标准0时时间戳
-        time_str = public.HttpGet('https://wafapi2.aapanel.com'+ '/api/index/get_time')
+        time_str = public.HttpGet(public.OfficialWaf2Base() + '/api/index/get_time')
 
         try:
             new_time = int(time_str) - 28800
@@ -1317,7 +1362,36 @@ class config:
                 t_str = 'Close'
                 public.write_log_gettext('Panel configuration', '{} Panel SSL', t_str)
                 g.rm_ssl = True
-                return public.return_message(0, 0, public.lang("SSL turned off，Please use http protocol to access the panel!"))
+                try:
+                    switch_token = public.GetRandomString(48)
+                    switch_data = {
+                        "token": switch_token,
+                        "expires": int(time.time()) + 180,
+                        "client_ip": public.GetClientIp(),
+                        "user_agent": request.headers.get('User-Agent', ''),
+                        "session": _get_panel_ssl_switch_session()
+                    }
+                    public.writeFile('{}/data/panel_ssl_switch.json'.format(public.get_panel_path()), json.dumps(switch_data))
+                    g.panel_ssl_switch_token = switch_token
+                except:
+                    pass
+                try:
+                    from flask import current_app
+                    current_app.config['SSL'] = False
+                    current_app.config['SESSION_COOKIE_SECURE'] = False
+                except:
+                    pass
+                _reload_panel_webserver()
+                public.reload_panel()
+                host = request.headers.get('host') or '{}:{}'.format(public.GetHost(), public.GetHost(True))
+                apsess_token = session.get('apsess_token', '')
+                if apsess_token and not str(apsess_token).startswith('apsess_'):
+                    apsess_token = 'apsess_' + str(apsess_token)
+                redirect_path = '/{}/'.format(apsess_token) if apsess_token else ''
+                return public.return_message(0, 0, {
+                    "result": public.lang("SSL turned off，Please use http protocol to access the panel!"),
+                    "redirect": "http://{}{}".format(host, redirect_path)
+                })
             else:
 
                 public.ExecShell('btpip install cffi')
@@ -1326,6 +1400,7 @@ class config:
                 if not 'cert_type' in get:
                     return public.return_message(-1, 0, public.lang("Please refresh the page and try again!"))
                 if get.cert_type in [0, '0']:  # 调用保存面板证书 传参0未出现
+                    result = self.SavePanelSSL(get)
                     result = self.SavePanelSSL(get)
                     if result['status'] == -1:
                         return result
@@ -1338,7 +1413,24 @@ class config:
                     public.writeFile(sslConf, 'True')
                 except:
                     return public.return_message(-1, 0, public.lang("Error, unable to auto install pyOpenSSL!<p>Plesea try to manually install: pip install pyOpenSSL</p>"))
-                return public.return_message(0, 0, public.lang("SSL is turned on, plesea use https protocol to access the panel!"))
+                try:
+                    from flask import current_app
+                    current_app.config['SSL'] = True
+                    current_app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+                    current_app.config['SESSION_COOKIE_SECURE'] = True
+                except:
+                    pass
+                _reload_panel_webserver()
+                public.reload_panel()
+                host = request.headers.get('host') or '{}:{}'.format(public.GetHost(), public.GetHost(True))
+                apsess_token = session.get('apsess_token', '')
+                if apsess_token and not str(apsess_token).startswith('apsess_'):
+                    apsess_token = 'apsess_' + str(apsess_token)
+                redirect_path = '/{}/'.format(apsess_token) if apsess_token else ''
+                return public.return_message(0, 0, {
+                    "result": public.lang("SSL is turned on, plesea use https protocol to access the panel!"),
+                    "redirect": "https://{}{}".format(host, redirect_path)
+                })
 
     # 自签证书
     # def CreateSSL(self):
@@ -1378,7 +1470,7 @@ class config:
             "access_key": 'B' * 32,
             "panel": 1
         }
-        cert_api = 'https://api.aapanel.com/aapanel_cert'
+        cert_api = f'{public.OfficialApiUrlBase()}/aapanel_cert'
         result = json.loads(public.httpPost(cert_api, {'data': json.dumps(pdata)}))
         if 'status' in result:
             if result['status']:
@@ -2858,7 +2950,7 @@ class config:
             if os.path.exists(site_total_uninstall):
                 os.remove(site_total_uninstall)
             public.writeFile(site_total_install, 'true')
-            execstr="curl https://node.aapanel.com/site_total/install.sh|bash"
+            execstr=f"curl {public.OfficialDownloadBase()}/site_total/install.sh|bash"
             public.ExecShell(execstr)
             if not os.path.exists("/etc/systemd/system/site_total.service"):
                 return public.return_message(-1, 0, 'Free website monitoring installation failed!')

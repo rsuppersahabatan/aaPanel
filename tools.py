@@ -36,7 +36,7 @@ sleep 6
 m_version=$(cat /www/server/mysql/version.pl)
 if echo "$m_version" | grep -E "(5\.1\.|5\.5\.|5\.6\.|10\.0\.|10\.1\.)" >/dev/null; then
     mysql -uroot -e "UPDATE mysql.user SET password=PASSWORD('${pwd}') WHERE user='root';"
-elif echo "$m_version" | grep -E "(10\.4\.|10\.5\.|10\.6\.|10\.7\.|10\.11\.|11\.3\.|11\.4\.)" >/dev/null; then
+elif echo "$m_version" | grep -E "(10\.4\.|10\.5\.|10\.6\.|10\.7\.|10\.11\.|11\.3\.|11\.4\.|11\.8\.)" >/dev/null; then
     mysql -uroot -e "
     FLUSH PRIVILEGES;
     ALTER USER 'root'@'localhost' IDENTIFIED BY '${pwd}';
@@ -256,7 +256,7 @@ def CreateSSL():
         "access_key":userInfo['access_key'],
         "panel":1
     }
-    cert_api = 'https://api.aapanel.com/aapanel_cert'
+    cert_api = f'{public.OfficialApiUrlBase()}/aapanel_cert'
     result = json.loads(public.httpPost(cert_api,{'data': json.dumps(pdata)}))
     if 'status' in result:
         if result['status']:
@@ -457,8 +457,7 @@ def setup_idc():
         panelPath = '/www/server/panel'
         filename = panelPath + '/data/o.pl'
         if not os.path.exists(filename): return False
-        o = public.readFile(filename).strip()
-        c_url = 'https://wafapi2.aapanel.com/api/idc/get_idc_info_bycode?o=%s' % o
+        c_url = f'{public.OfficialWaf2Base()}/api/idc/get_idc_info_bycode?o={public.readFile(filename).strip()}'
         idcInfo = json.loads(public.httpGet(c_url))
         if not idcInfo['status']: return False
         pFile = panelPath + '/config/config.json'
@@ -742,12 +741,12 @@ def bt_cli(u_input = 0):
         pro_path = '/www/server/panel/data/panel_pro.pl'
         if os.path.exists(pro_path):
             print("|-Updating aapanel version to pro version...")
-            os.system("curl -k https://node.aapanel.com/install/update_pro_en.sh|bash")
+            os.system(f"curl -k {public.OfficialDownloadBase()}/install/update_pro_en.sh|bash")
         else:
             # os.system("/www/server/panel/pyenv/bin/pip install cachelib")
             only_update_pyenv312 = '/tmp/only_update_pyenv312.pl'
             if os.path.exists(only_update_pyenv312): os.remove(only_update_pyenv312)
-            os.system("curl -k https://node.aapanel.com/install/update_7.x_en.sh|bash")
+            os.system(f"curl -k {public.OfficialDownloadBase()}/install/update_panel_en.sh|bash")
     elif u_input == 17:
         l_path = '/www/server/panel/data/log_not_gzip.pl'
         if os.path.exists(l_path):
@@ -771,7 +770,7 @@ def bt_cli(u_input = 0):
     elif u_input == 19:
         if os.path.exists('/tmp/update_to7.pl'):os.remove('/tmp/update_to7.pl')
         print("|-Updating aapanel version to pro version...")
-        os.system("curl -k https://node.aapanel.com/install/update_pro_en.sh|bash")
+        os.system(f"curl -k {public.OfficialDownloadBase()}/install/update_pro_en.sh|bash")
     elif u_input == 22:
         os.system('tail -100 /www/server/panel/logs/error.log')
     elif u_input == 23:

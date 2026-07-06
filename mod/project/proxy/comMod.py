@@ -8,6 +8,7 @@
 # -------------------------------------------------------------------
 import json
 import os
+import shutil
 # ------------------------------
 # 反向代理模型
 # ------------------------------
@@ -114,6 +115,19 @@ class main():
             "http_block": "",
             "server_block": "",
             "remark": "",
+            "source_binding": {
+                "enabled": False,
+                "bind_type": "",
+                "source_module": "",
+                "source_id": "",
+                "source_name": "",
+                "source_user": "",
+                "bind_scope": "project",
+                "bind_status": "",
+                "created_at": "",
+                "updated_at": "",
+                "extra": {},
+            },
             "proxy_info": [],
         }
         self._template_conf = r'''{http_block}
@@ -218,6 +232,373 @@ server {{
       {server_log}
     }}'''
 
+    def _empty_source_binding(self, bind_scope="project"):
+        return {
+            "enabled": False,
+            "bind_type": "",
+            "source_module": "",
+            "source_id": "",
+            "source_name": "",
+            "source_user": "",
+            "bind_scope": bind_scope,
+            "bind_status": "",
+            "created_at": "",
+            "updated_at": "",
+            "extra": {},
+        }
+
+    def _source_binding_enabled(self, binding):
+        return isinstance(binding, dict) and binding.get("enabled") and binding.get("bind_type") and binding.get("source_id")
+
+    def _normalize_source_binding(self, binding, bind_scope="project"):
+        default_binding = self._empty_source_binding(bind_scope)
+        if not isinstance(binding, dict):
+            return default_binding
+        default_binding.update(binding)
+        default_binding["bind_scope"] = default_binding.get("bind_scope") or bind_scope
+        default_binding["extra"] = default_binding.get("extra") if isinstance(default_binding.get("extra"), dict) else {}
+        return default_binding
+
+    def _normalize_proxy_source_bindings(self, proxy_json_conf):
+        if not isinstance(proxy_json_conf, dict):
+            return proxy_json_conf
+        proxy_json_conf["source_binding"] = self._normalize_source_binding(
+            proxy_json_conf.get("source_binding"), "project"
+        )
+        for proxy_info in proxy_json_conf.get("proxy_info", []):
+            if isinstance(proxy_info, dict):
+                proxy_info["source_binding"] = self._normalize_source_binding(
+                    proxy_info.get("source_binding"), "proxy_info"
+                )
+        return proxy_json_conf
+
+    def _get_supervisor_config_path(self):
+        return "/www/server/panel/plugin/supervisor/config.json"
+
+    def _get_supervisor_plugin_path(self):
+        return "/www/server/panel/plugin/supervisor"
+
+    def _check_supervisor_plugin_exists(self):
+        plugin_path = self._get_supervisor_plugin_path()
+        main_file = "{}/supervisor_main.py".format(plugin_path)
+        if not os.path.exists(plugin_path) or not os.path.exists(main_file):
+            return False, public.lang("Please download and install the Supervisor plugin first!")
+        return True, ""
+
+    def _supervisor_plugin_missing_response(self):
+        return public.return_message(-1, 0, public.lang("Please download and install the Supervisor plugin first!"))
+
+    def _read_supervisor_config(self):
+        conf_path = self._get_supervisor_config_path()
+        try:
+            if not os.path.exists(conf_path):
+                return []
+            body = public.readFile(conf_path)
+            if not body:
+                return []
+            data = json.loads(body)
+            return data if isinstance(data, list) else []
+        except:
+            return []
+
+    def _write_supervisor_config(self, data):
+        try:
+            return public.writeFile(self._get_supervisor_config_path(), json.dumps(data))
+        except Exception as ex:
+            public.print_log("sync supervisor proxy binding failed: {}".format(ex))
+            return False
+
+    def _get_supervisor_config_map(self):
+        plugin_exists, _ = self._check_supervisor_plugin_exists()
+        if not plugin_exists:
+            return {}
+        res = {}
+        for item in self._read_supervisor_config():
+            if isinstance(item, dict) and item.get("program"):
+                res[item.get("program")] = item
+        return res
+
+    def _get_supervisor_obj(self):
+        plugin_exists, msg = self._check_supervisor_plugin_exists()
+        if not plugin_exists:
+            raise RuntimeError(msg)
+        plugin_path = self._get_supervisor_plugin_path()
+        if plugin_path not in sys.path:
+            sys.path.insert(0, plugin_path)
+        from supervisor_main import supervisor_main
+        return supervisor_main()
+
+    def _get_supervisor_process_map(self):
+        plugin_exists, _ = self._check_supervisor_plugin_exists()
+        if not plugin_exists:
+            return {}, False
+        try:
+            process_list = self._get_supervisor_obj().GetProcessList(public.to_dict_obj({}))
+            if not isinstance(process_list, list):
+                return {}, False
+            return dict((item.get("program"), item) for item in process_list if isinstance(item, dict) and item.get("program")), True
+        except Exception as ex:
+            public.print_log("get supervisor process map failed: {}".format(ex))
+            return {}, False
+
+    def _parse_source_extra(self, source_extra):
+        if isinstance(source_extra, dict):
+            return source_extra
+        if isinstance(source_extra, str) and source_extra:
+            try:
+                data = json.loads(source_extra)
+                return data if isinstance(data, dict) else {}
+            except:
+                return {}
+        return {}
+
+    def _build_source_binding(self, get, bind_scope="project"):
+        bind_type = get.get("bind_type", "")
+        source_id = get.get("source_id", "")
+        if not bind_type and not source_id:
+            return None
+        if bind_type != "supervisor":
+            return public.return_message(-1, 0, public.lang("Unsupported binding source type: {}", bind_type))
+        if not source_id:
+            return public.return_message(-1, 0, public.lang("The binding source ID cannot be empty!"))
+
+        plugin_exists, msg = self._check_supervisor_plugin_exists()
+        if not plugin_exists:
+            return public.return_message(-1, 0, msg)
+
+        supervisor_config = self._get_supervisor_config_map()
+        daemon_info = supervisor_config.get(source_id)
+        if not daemon_info:
+            return public.return_message(-1, 0, public.lang("The Supervisor daemon [{}] does not exist!", source_id))
+
+        now_time = public.getDate()
+        extra = self._parse_source_extra(get.get("source_extra", {}))
+        for key in ["command", "directory", "numprocs"]:
+            if key not in extra and key in daemon_info:
+                extra[key] = daemon_info.get(key)
+        binding = {
+            "enabled": True,
+            "bind_type": "supervisor",
+            "source_module": get.get("source_module", "plugin/supervisor"),
+            "source_id": source_id,
+            "source_name": get.get("source_name", source_id),
+            "source_user": get.get("source_user", daemon_info.get("user", "")),
+            "bind_scope": bind_scope,
+            "bind_status": "active",
+            "created_at": now_time,
+            "updated_at": now_time,
+            "extra": extra,
+        }
+        return binding
+
+    def _get_proxy_source_binding(self, proxy_json_conf):
+        if not isinstance(proxy_json_conf, dict):
+            return self._empty_source_binding()
+        proxy_list = proxy_json_conf.get("proxy_info", [])
+        if isinstance(proxy_list, list):
+            for proxy_info in proxy_list:
+                binding = self._normalize_source_binding(
+                    proxy_info.get("source_binding") if isinstance(proxy_info, dict) else None, "proxy_info"
+                )
+                if self._source_binding_enabled(binding):
+                    return binding
+        binding = self._normalize_source_binding(proxy_json_conf.get("source_binding"), "project")
+        return binding if self._source_binding_enabled(binding) else self._empty_source_binding()
+
+    def _get_source_binding_display(self, proxy_json_conf, supervisor_process_map=None, supervisor_readable=True,
+                                    supervisor_config_map=None):
+        binding = self._get_proxy_source_binding(proxy_json_conf)
+        if not self._source_binding_enabled(binding):
+            return binding
+        if binding.get("bind_type") != "supervisor":
+            return binding
+
+        supervisor_process_map = supervisor_process_map or {}
+        supervisor_config_map = supervisor_config_map or self._get_supervisor_config_map()
+        process_info = supervisor_process_map.get(binding.get("source_id"))
+        config_info = supervisor_config_map.get(binding.get("source_id"))
+        if not process_info and not config_info:
+            binding["bind_status"] = "missing"
+            binding["can_log"] = False
+            binding["can_start"] = False
+            return binding
+        if not supervisor_readable:
+            binding["bind_status"] = "stale"
+            binding["can_log"] = False
+            binding["can_start"] = False
+            if config_info:
+                binding["source_user"] = config_info.get("user", binding.get("source_user", ""))
+            return binding
+
+        binding["bind_status"] = "active"
+        binding["runStatus"] = process_info.get("runStatus", "") if process_info else ""
+        binding["status"] = process_info.get("status", "") if process_info else ""
+        binding["pid"] = process_info.get("pid", "") if process_info else ""
+        binding["source_user"] = (process_info or config_info or {}).get("user", binding.get("source_user", ""))
+        binding["can_log"] = True
+        binding["can_start"] = True
+        return binding
+
+    def _make_supervisor_proxy_binding(self, program, site_id, site_name, proxy_path, proxy_pass):
+        now_time = public.getDate()
+        return {
+            "enabled": True,
+            "bind_type": "supervisor",
+            "source_id": program,
+            "site_id": site_id,
+            "site_name": site_name,
+            "proxy_path": proxy_path,
+            "proxy_pass": proxy_pass,
+            "bind_status": "active",
+            "created_at": now_time,
+            "updated_at": now_time,
+        }
+
+    def _normalize_supervisor_proxy_bindings(self, item):
+        bindings = item.get("proxy_bindings", [])
+        if not isinstance(bindings, list):
+            bindings = []
+        old_binding = item.get("proxy_binding")
+        if isinstance(old_binding, dict) and old_binding.get("enabled"):
+            exists = False
+            for binding in bindings:
+                if binding.get("site_name") == old_binding.get("site_name") and binding.get("proxy_path") == old_binding.get("proxy_path"):
+                    exists = True
+                    break
+            if not exists:
+                bindings.append(old_binding)
+        return bindings
+
+    def _sync_supervisor_proxy_binding(self, program, binding):
+        if not program or not isinstance(binding, dict):
+            return True
+        data = self._read_supervisor_config()
+        changed = False
+        for item in data:
+            if not isinstance(item, dict) or item.get("program") != program:
+                continue
+            bindings = self._normalize_supervisor_proxy_bindings(item)
+            bindings = [
+                i for i in bindings
+                if not (i.get("site_name") == binding.get("site_name") and i.get("proxy_path") == binding.get("proxy_path"))
+            ]
+            bindings.append(binding)
+            item["proxy_bindings"] = bindings
+            item["proxy_binding"] = bindings[0] if bindings else {}
+            changed = True
+            break
+        if not changed:
+            return False
+        return self._write_supervisor_config(data)
+
+    def _clear_supervisor_proxy_binding(self, program=None, site_name=None, proxy_path=None):
+        data = self._read_supervisor_config()
+        changed = False
+        for item in data:
+            if not isinstance(item, dict):
+                continue
+            if program and item.get("program") != program:
+                continue
+            bindings = self._normalize_supervisor_proxy_bindings(item)
+            new_bindings = []
+            for binding in bindings:
+                if site_name and binding.get("site_name") != site_name:
+                    new_bindings.append(binding)
+                    continue
+                if proxy_path and binding.get("proxy_path") != proxy_path:
+                    new_bindings.append(binding)
+                    continue
+                changed = True
+            item["proxy_bindings"] = new_bindings
+            item["proxy_binding"] = new_bindings[0] if new_bindings else {}
+        if not changed:
+            return True
+        return self._write_supervisor_config(data)
+
+    def _get_site_id(self, site_name):
+        try:
+            return public.M('sites').where("name=?", (site_name,)).getField('id')
+        except:
+            return 0
+
+    def _update_site_project_config(self, site_name, proxy_json_conf):
+        try:
+            public.M('sites').where("name=?", (site_name,)).update({
+                "project_config": json.dumps(proxy_json_conf)
+            })
+        except Exception as ex:
+            public.print_log("update proxy project_config failed: {}".format(ex))
+
+    def _proxy_binding_matches(self, binding, source_id=None, site_name=None, proxy_path=None):
+        if not self._source_binding_enabled(binding):
+            return False
+        if source_id and binding.get("source_id") != source_id:
+            return False
+        if site_name and binding.get("site_name") != site_name:
+            return False
+        if proxy_path and binding.get("proxy_path") != proxy_path:
+            return False
+        return True
+
+    def _collect_source_bindings(self, proxy_json_conf):
+        bindings = []
+        if not isinstance(proxy_json_conf, dict):
+            return bindings
+        top_binding = self._normalize_source_binding(proxy_json_conf.get("source_binding"), "project")
+        if self._source_binding_enabled(top_binding):
+            bindings.append(top_binding)
+        for proxy_info in proxy_json_conf.get("proxy_info", []):
+            if not isinstance(proxy_info, dict):
+                continue
+            binding = self._normalize_source_binding(proxy_info.get("source_binding"), "proxy_info")
+            if self._source_binding_enabled(binding):
+                bindings.append(binding)
+        return bindings
+
+    def _refresh_project_source_binding(self, proxy_json_conf):
+        for proxy_info in proxy_json_conf.get("proxy_info", []):
+            if not isinstance(proxy_info, dict):
+                continue
+            binding = self._normalize_source_binding(proxy_info.get("source_binding"), "proxy_info")
+            if self._source_binding_enabled(binding):
+                proxy_json_conf["source_binding"] = dict(binding, bind_scope="project")
+                return
+        proxy_json_conf["source_binding"] = self._empty_source_binding("project")
+
+    def _clear_proxy_source_bindings_by_supervisor(self, source_id):
+        count = 0
+        try:
+            sites = public.M('sites').where("project_type=?", ("proxy",)).field('name').select()
+        except:
+            sites = []
+        for site in sites:
+            site_name = site.get("name")
+            if not site_name:
+                continue
+            args = public.to_dict_obj({"site_name": site_name})
+            proxy_json_conf = self.read_json_conf(args).get("message", {})
+            if not proxy_json_conf:
+                continue
+            changed = False
+            top_binding = self._normalize_source_binding(proxy_json_conf.get("source_binding"), "project")
+            if self._source_binding_enabled(top_binding) and top_binding.get("source_id") == source_id:
+                proxy_json_conf["source_binding"] = self._empty_source_binding("project")
+                changed = True
+            for proxy_info in proxy_json_conf.get("proxy_info", []):
+                if not isinstance(proxy_info, dict):
+                    continue
+                binding = self._normalize_source_binding(proxy_info.get("source_binding"), "proxy_info")
+                if self._source_binding_enabled(binding) and binding.get("source_id") == source_id:
+                    proxy_info["source_binding"] = self._empty_source_binding("proxy_info")
+                    changed = True
+            if changed:
+                self._refresh_project_source_binding(proxy_json_conf)
+                path = "{}/{}/{}.json".format(self._proxy_config_path, site_name, site_name)
+                public.writeFile(path, json.dumps(proxy_json_conf))
+                self._update_site_project_config(site_name, proxy_json_conf)
+                count += 1
+        return count
+
     def structure_proxy_conf(self, get):
         '''
             @name
@@ -291,6 +672,7 @@ server {{
             "custom_conf": "",
             "proxy_conf": get.proxy_conf,
             "remark": "",
+            "source_binding": self._empty_source_binding("proxy_info"),
             "template_proxy_conf": self._template_proxy_conf,
         }
 
@@ -370,7 +752,7 @@ server {{
         else:
             ipv4_port_conf = self._init_proxy_conf["ipv4_port_conf"].format(listen_port=listen_port)
             ipv6_port_conf = self._init_proxy_conf["ipv6_port_conf"].format(listen_port=listen_port)
-        port_conf = ipv4_port_conf + "\n" + ipv6_port_conf
+        port_conf = ipv4_port_conf + "\n" + (ipv6_port_conf if self.open_ipv6_status() else "")
 
         # 2024/6/4 下午4:20 兼容新版监控报表的配置
         monitor_conf = ""
@@ -459,6 +841,135 @@ server {{
 
     # 2024/4/18 上午9:26 创建反向代理
     def create(self, get):
+        return self._create(get)
+
+    def create_by_supervisor(self, get):
+        plugin_exists, _ = self._check_supervisor_plugin_exists()
+        if not plugin_exists:
+            return self._supervisor_plugin_missing_response()
+        if not get.get("bind_type", ""):
+            get.bind_type = "supervisor"
+        if not get.get("source_id", "") and get.get("program", ""):
+            get.source_id = get.get("program", "")
+        if not get.get("source_name", "") and get.get("source_id", ""):
+            get.source_name = get.get("source_id", "")
+
+        source_binding = self._build_source_binding(get, "project")
+        if isinstance(source_binding, dict) and source_binding.get("status") == -1:
+            return source_binding
+        if not source_binding:
+            return public.return_message(-1, 0, public.lang("The Supervisor daemon cannot be empty!"))
+        return self._create(get, source_binding=source_binding)
+
+    def proxy_bind_by_supervisor(self, get):
+        '''
+            @name Bind an existing Proxy Project to a Supervisor daemon
+        '''
+        plugin_exists, _ = self._check_supervisor_plugin_exists()
+        if not plugin_exists:
+            return self._supervisor_plugin_missing_response()
+        try:
+            get.validate([
+                Param('site_name').String(),
+            ], [
+                public.validate.trim_filter(),
+            ])
+        except Exception as ex:
+            public.print_log("error info: {}".format(ex))
+            return public.return_message(-1, 0, str(ex))
+
+        get.site_name = get.get("site_name", "")
+        if not get.site_name:
+            return public.return_message(-1, 0, public.lang("Sitename cannot be empty!"))
+
+        if not get.get("bind_type", ""):
+            get.bind_type = "supervisor"
+        if not get.get("source_id", "") and get.get("program", ""):
+            get.source_id = get.get("program", "")
+        if not get.get("source_name", "") and get.get("source_id", ""):
+            get.source_name = get.get("source_id", "")
+
+        source_binding = self._build_source_binding(get, "proxy_info")
+        if isinstance(source_binding, dict) and source_binding.get("status") == -1:
+            return source_binding
+        if not source_binding:
+            return public.return_message(-1, 0, public.lang("The Supervisor daemon cannot be empty!"))
+
+        get.proxy_json_conf = self.read_json_conf(get).get("message", {})
+        if not get.proxy_json_conf:
+            return public.return_message(-1, 0, public.lang("Reading configuration file failed, please delete the website and add it again!"))
+
+        proxy_info_list = get.proxy_json_conf.get("proxy_info", [])
+        if not proxy_info_list:
+            return public.return_message(-1, 0, public.lang("No proxy information!"))
+
+        old_project_binding = self._normalize_source_binding(get.proxy_json_conf.get("source_binding"), "project")
+        proxy_path = get.get("proxy_path", "")
+        target_proxy_info = None
+        if proxy_path:
+            for proxy_info in proxy_info_list:
+                if proxy_info.get("proxy_path") == proxy_path:
+                    target_proxy_info = proxy_info
+                    break
+            if not target_proxy_info:
+                return public.return_message(-1, 0, public.lang("No proxy information found for this URL [{}]!", proxy_path))
+        else:
+            for proxy_info in proxy_info_list:
+                if proxy_info.get("proxy_path") == "/":
+                    target_proxy_info = proxy_info
+                    break
+            if not target_proxy_info and len(proxy_info_list) == 1:
+                target_proxy_info = proxy_info_list[0]
+            if not target_proxy_info:
+                return public.return_message(-1, 0, public.lang("Please specify proxy_path for projects with multiple reverse proxy rules!"))
+
+        old_source_binding = self._normalize_source_binding(target_proxy_info.get("source_binding"), "proxy_info")
+        target_proxy_info["source_binding"] = source_binding
+        get.proxy_json_conf["source_binding"] = dict(source_binding, bind_scope="project")
+
+        site_id = self._get_site_id(get.site_name)
+        supervisor_binding = self._make_supervisor_proxy_binding(
+            source_binding.get("source_id"),
+            site_id,
+            get.site_name,
+            target_proxy_info.get("proxy_path", "/"),
+            target_proxy_info.get("proxy_pass", ""),
+        )
+
+        self._site_proxy_conf_path = "{path}/{site_name}/{site_name}.json".format(
+            path=self._proxy_config_path,
+            site_name=get.site_name
+        )
+        public.writeFile(self._site_proxy_conf_path, json.dumps(get.proxy_json_conf))
+        self._update_site_project_config(get.site_name, get.proxy_json_conf)
+
+        if self._source_binding_enabled(old_source_binding) and old_source_binding.get("source_id") != source_binding.get("source_id"):
+            self._clear_supervisor_proxy_binding(
+                old_source_binding.get("source_id"),
+                get.site_name,
+                target_proxy_info.get("proxy_path", "/")
+            )
+        if self._source_binding_enabled(old_project_binding) and old_project_binding.get("source_id") != source_binding.get("source_id"):
+            old_project_source_exists = False
+            for proxy_info in get.proxy_json_conf.get("proxy_info", []):
+                binding = self._normalize_source_binding(proxy_info.get("source_binding"), "proxy_info")
+                if self._source_binding_enabled(binding) and binding.get("source_id") == old_project_binding.get("source_id"):
+                    old_project_source_exists = True
+                    break
+            if not old_project_source_exists:
+                self._clear_supervisor_proxy_binding(old_project_binding.get("source_id"), get.site_name)
+        if not self._sync_supervisor_proxy_binding(source_binding.get("source_id"), supervisor_binding):
+            return public.return_message(-1, 0, public.lang("Proxy binding saved, but Supervisor reverse index sync failed!"))
+        return public.return_message(0, 0, public.lang("Binding successful"))
+        # return public.return_message(0, 0, {
+        #     "site_name": get.site_name,
+        #     "proxy_path": target_proxy_info.get("proxy_path", "/"),
+        #     "source_binding": source_binding,
+        #     "proxy_binding": supervisor_binding,
+        # })
+
+
+    def _create(self, get, source_binding=None):
         '''
             @name 创建反向代理
             @author wzz <2024/4/18 上午9:27>
@@ -539,7 +1050,6 @@ server {{
             #/目录不支持关闭保持uri
             if get.proxy_path == "/" and int(get.keepuri) == 0:
                 return public.return_message(-1, 0, public.lang("Proxy_path is root directory, cannot close Show Proxy Path!"))
-            
 
         # 2024/4/18 上午9:45 创建反向代理
         get.domain_list = get.domains.split("\n")
@@ -635,6 +1145,10 @@ server {{
 
         # 2024/6/4 下午4:30 写nginx配置文件
         self.write_nginx_conf(get)
+        if source_binding:
+            self._init_proxy_conf["source_binding"] = source_binding
+            if self._init_proxy_conf.get("proxy_info"):
+                self._init_proxy_conf["proxy_info"][0]["source_binding"] = dict(source_binding, bind_scope="proxy_info")
         public.writeFile(self._site_proxy_conf_path, json.dumps(self._init_proxy_conf))
         wc_err = public.checkWebConfig()
         if not wc_err:
@@ -656,8 +1170,16 @@ server {{
 
         public.WriteLog('TYPE_SITE', 'SITE_ADD_SUCCESS', (get.site_name,))
         public.set_module_logs('site_proxy', 'create', 1)
+        self._update_site_project_config(get.site_name, self._init_proxy_conf)
+        sync_warning = ""
+        if source_binding:
+            supervisor_binding = self._make_supervisor_proxy_binding(
+                source_binding.get("source_id"), get.pid, get.site_name, get.proxy_path, get.proxy_pass
+            )
+            if not self._sync_supervisor_proxy_binding(source_binding.get("source_id"), supervisor_binding):
+                sync_warning = " Supervisor binding sync failed."
         public.serviceReload()
-        return public.return_message(0, 0, public.lang("Reverse proxy project added successfully!"))
+        return public.return_message(0, 0, public.lang("Reverse proxy project added successfully!") + sync_warning)
 
     def read_json_conf(self, get):
         '''
@@ -678,6 +1200,7 @@ server {{
                 proxy_json_conf['ssl_info']['ssl_status']=True
             else:
                 proxy_json_conf['ssl_info']['ssl_status']=False
+            proxy_json_conf = self._normalize_proxy_source_bindings(proxy_json_conf)
         except Exception as e:
             proxy_json_conf = {}
 
@@ -1279,6 +1802,10 @@ server {{
                     return public.return_message(-1, 0,"[{}] already exists in Basicauth, please delete it before adding a reverse proxy!".format(
                         get.proxy_path))
 
+        source_binding = self._build_source_binding(get, "proxy_info")
+        if isinstance(source_binding, dict) and source_binding.get("status") == -1:
+            return source_binding
+
         sni_conf = ""
         if get.proxy_pass.startswith("https://"):
             sni_conf = "proxy_ssl_server_name on;"
@@ -1345,12 +1872,23 @@ server {{
             "custom_conf": "",
             "proxy_conf": get.proxy_conf,
             "remark": get.remark,
+            "source_binding": source_binding if source_binding else self._empty_source_binding("proxy_info"),
             "template_proxy_conf": self._template_proxy_conf,
         })
+        if source_binding and not self._source_binding_enabled(get.proxy_json_conf.get("source_binding")):
+            get.proxy_json_conf["source_binding"] = dict(source_binding, bind_scope="project")
 
         update_result = self.update_conf(get)
         if update_result["status"]==-1:
             return update_result
+
+        if source_binding:
+            site_id = self._get_site_id(get.site_name)
+            supervisor_binding = self._make_supervisor_proxy_binding(
+                source_binding.get("source_id"), site_id, get.site_name, get.proxy_path, get.proxy_pass
+            )
+            if not self._sync_supervisor_proxy_binding(source_binding.get("source_id"), supervisor_binding):
+                public.print_log("sync supervisor proxy binding failed: {}".format(source_binding.get("source_id")))
 
         public.set_module_logs('site_proxy', 'add_proxy', 1)
         return public.return_message(0, 0, public.lang("Added successfully!"))
@@ -1377,7 +1915,6 @@ server {{
             public.print_log("error info: {}".format(ex))
             return public.return_message(-1, 0, str(ex))
 
-        get.site_name = get.get("site_name", "")
         get.id = get.get("id", "")
         get.remove_path = get.get("remove_path/d", 0)
         if get.id == "":
@@ -1385,15 +1922,28 @@ server {{
 
         get.reload = get.get("reload/d", 1)
 
-        if public.M('sites').where('id=?', (get.id,)).count() < 1:
+        site_info = public.M('sites').where('id=?', (get.id,)).field('name').find()
+        if not site_info:
             return public.return_message(-1, 0, public.lang("The specified site does not exist!"))
+        get.site_name = site_info.get("name", "")
+        if not get.site_name:
+            return public.return_message(-1, 0, public.lang("Sitename cannot be empty!"))
 
-        site_file = public.get_setup_path() + '/panel/vhost/nginx/' + get.site_name + '.conf'
-        if os.path.exists(site_file):
-            public.ExecShell('rm -f {}'.format(site_file))
-        redirect_dir = public.get_setup_path() + '/panel/vhost/nginx/redirect/' + get.site_name
-        if os.path.exists(redirect_dir):
-            public.ExecShell('rm -rf {}'.format(redirect_dir))
+        proxy_json_conf = self.read_json_conf(get).get("message", {})
+        source_bindings = self._collect_source_bindings(proxy_json_conf)
+
+        nginx_conf_root = os.path.abspath(public.get_setup_path() + '/panel/vhost/nginx')
+        site_file = os.path.abspath(os.path.join(nginx_conf_root, get.site_name + '.conf'))
+        if site_file.startswith(nginx_conf_root + os.sep) and os.path.isfile(site_file):
+            os.remove(site_file)
+        well_known_root = os.path.abspath(public.get_panel_path() + '/vhost/nginx/well-known')
+        well_known_file = os.path.abspath(os.path.join(well_known_root, get.site_name + '.conf'))
+        if well_known_file.startswith(well_known_root + os.sep) and os.path.isfile(well_known_file):
+            os.remove(well_known_file)
+        redirect_root = os.path.abspath(public.get_setup_path() + '/panel/vhost/nginx/redirect')
+        redirect_dir = os.path.abspath(os.path.join(redirect_root, get.site_name))
+        if redirect_dir.startswith(redirect_root + os.sep) and os.path.exists(redirect_dir):
+            shutil.rmtree(redirect_dir, ignore_errors=True)
 
         logs_file = public.get_logs_path() + '/{}*'.format(get.site_name)
         public.ExecShell('rm -f {}'.format(logs_file))
@@ -1402,7 +1952,13 @@ server {{
             path=self._proxy_config_path,
             site_name=get.site_name
         )
-        public.ExecShell('rm -f {}'.format(self._site_proxy_conf_path))
+        proxy_conf_dir = os.path.abspath(self._site_proxy_conf_path)
+        proxy_config_root = os.path.abspath(self._proxy_config_path)
+        if proxy_conf_dir.startswith(proxy_config_root + os.sep):
+            if os.path.isdir(proxy_conf_dir):
+                shutil.rmtree(proxy_conf_dir, ignore_errors=True)
+            elif os.path.exists(proxy_conf_dir):
+                os.remove(proxy_conf_dir)
 
         if get.remove_path == 1:
             public.ExecShell('rm -rf /www/wwwroot/{}'.format(get.site_name))
@@ -1413,6 +1969,13 @@ server {{
         # 从数据库删除
         public.M('sites').where("id=?", (get.id,)).delete()
         public.M('domain').where("pid=?", (get.id,)).delete()
+        cleared_programs = []
+        for binding in source_bindings:
+            program = binding.get("source_id")
+            if not program or program in cleared_programs:
+                continue
+            self._clear_supervisor_proxy_binding(program, get.site_name)
+            cleared_programs.append(program)
         public.WriteLog('TYPE_SITE', "SITE_DEL_SUCCESS", (get.site_name,))
 
         return public.return_message(0, 0, public.lang("Reverse proxy project deleted successfully!"))
@@ -1548,6 +2111,8 @@ server {{
         except:
             waf_res = {}
 
+        supervisor_process_map, supervisor_readable = self._get_supervisor_process_map()
+        supervisor_config_map = self._get_supervisor_config_map()
         for site in all_data:
             site['re_total'] = 0
             if re_data and site['name'] in re_data:
@@ -1564,6 +2129,9 @@ server {{
             site["conf_path"] = public.get_setup_path() + '/panel/vhost/nginx/' + site['name'] + '.conf'
             site["ssl"] = self.get_site_ssl_info(site['name'])
             site["proxy_pass"] = project_config.get("proxy_info", [{}])[0].get("proxy_pass", "")
+            site["source_binding"] = self._get_source_binding_display(
+                project_config, supervisor_process_map, supervisor_readable, supervisor_config_map
+            )
 
             site["waf"] = {"status": True} if (site['name'] in waf_res and waf_res[site['name']].get('open')) else {}
 
@@ -1984,6 +2552,10 @@ server {{
 
         return public.return_message(0, 0, public.lang("Save successful!"))
 
+    @staticmethod
+    def open_ipv6_status():
+        return os.path.exists(public.get_panel_path() + '/data/ipv6.pl')
+
     # 2024/4/20 下午3:11 根据proxy_json_conf，填入self._template_conf，然后生成nginx配置，保存到指定网站的conf文件中
     def generate_config(self, get):
         """
@@ -2194,7 +2766,7 @@ server {{
                     ssl_conf += "\n    ssl_early_data on;"
 
         else:
-            port_conf = ipv4_port_conf + "\n" + ipv6_port_conf
+            port_conf = ipv4_port_conf + "\n" + (ipv6_port_conf if self.open_ipv6_status() else "")
 
         redirect_conf = ""
         if get.proxy_json_conf["redirect"]["redirect_status"]:
@@ -3202,8 +3774,18 @@ server {{
         if get.proxy_json_conf["websocket"]["websocket_status"] and get.websocket != 1:
             return public.return_message(-1, 0, public.lang("The global websocket is in an open state, and it is not allowed to individually disable websocket support for this URL!"))
 
+        unbind_source = int(get.get("unbind_source/d", 0))
+        new_source_binding = None
+        if unbind_source != 1 and (get.get("bind_type", "") or get.get("source_id", "")):
+            new_source_binding = self._build_source_binding(get, "proxy_info")
+            if isinstance(new_source_binding, dict) and new_source_binding.get("status") == -1:
+                return new_source_binding
+
+        old_source_binding = None
+        binding_changed = False
         for info in get.proxy_json_conf["proxy_info"]:
             if info["proxy_path"] == get.proxy_path:
+                old_source_binding = self._normalize_source_binding(info.get("source_binding"), "proxy_info")
                 info["proxy_host"] = get.proxy_host
                 info["proxy_pass"] = get.proxy_pass
                 info["proxy_type"] = get.proxy_type
@@ -3214,13 +3796,32 @@ server {{
                 info["remark"] = get.remark
                 info["keepuri"]=int(get.keepuri)
                 info["rewritedir"]= json.loads(get.get("rewritedir", '[{"dir1":"","dir2":""}]'))
+                if unbind_source == 1:
+                    info["source_binding"] = self._empty_source_binding("proxy_info")
+                    binding_changed = True
+                elif new_source_binding:
+                    info["source_binding"] = new_source_binding
+                    binding_changed = True
                 break
         else:
             return public.return_message(-1, 0, public.lang("No proxy information found for this URL [{}]!", get.proxy_path))
 
+        if binding_changed:
+            self._refresh_project_source_binding(get.proxy_json_conf)
+
         update_result = self.update_conf(get)
         if update_result["status"]==-1:
             return update_result
+
+        if binding_changed and self._source_binding_enabled(old_source_binding):
+            if unbind_source == 1 or not new_source_binding or old_source_binding.get("source_id") != new_source_binding.get("source_id"):
+                self._clear_supervisor_proxy_binding(old_source_binding.get("source_id"), get.site_name, get.proxy_path)
+        if new_source_binding:
+            site_id = self._get_site_id(get.site_name)
+            supervisor_binding = self._make_supervisor_proxy_binding(
+                new_source_binding.get("source_id"), site_id, get.site_name, get.proxy_path, get.proxy_pass
+            )
+            self._sync_supervisor_proxy_binding(new_source_binding.get("source_id"), supervisor_binding)
 
         return public.return_message(0, 0, public.lang("Set successfully!"))
 
@@ -3258,16 +3859,24 @@ server {{
         if not get.proxy_json_conf:
             return public.return_message(-1, 0, public.lang("Reading configuration file failed, please delete the website and add it again!"))
 
+        old_source_binding = None
         for info in get.proxy_json_conf["proxy_info"]:
             if info["proxy_path"] == get.proxy_path:
+                old_source_binding = self._normalize_source_binding(info.get("source_binding"), "proxy_info")
                 get.proxy_json_conf["proxy_info"].remove(info)
                 break
         else:
             return public.return_message(-1, 0, public.lang("No proxy information found for this URL [{}]!", get.proxy_path))
 
+        if self._source_binding_enabled(old_source_binding):
+            self._refresh_project_source_binding(get.proxy_json_conf)
+
         update_result = self.update_conf(get)
         if update_result["status"]==-1:
             return update_result
+
+        if self._source_binding_enabled(old_source_binding):
+            self._clear_supervisor_proxy_binding(old_source_binding.get("source_id"), get.site_name, get.proxy_path)
 
         return public.return_message(0, 0, public.lang("Delete successful!"))
 
@@ -3992,6 +4601,186 @@ server {{
 
         return public.returnResult(msg="设置成功！")
 
+    def proxy_unbind_source(self, get):
+        '''
+            @name Unbind a source from an existing Proxy Project
+        '''
+        try:
+            get.validate([
+                Param('site_name').String(),
+            ], [
+                public.validate.trim_filter(),
+            ])
+        except Exception as ex:
+            public.print_log("error info: {}".format(ex))
+            return public.return_message(-1, 0, str(ex))
+
+        site_name = get.get("site_name", "")
+        if not site_name:
+            return public.return_message(-1, 0, public.lang("Sitename cannot be empty!"))
+
+        proxy_path = get.get("proxy_path", "")
+        bind_type = get.get("bind_type", "")
+        source_id = get.get("source_id", get.get("program", ""))
+
+        get.site_name = site_name
+        proxy_json_conf = self.read_json_conf(get).get("message", {})
+        if not proxy_json_conf:
+            return public.return_message(-1, 0, public.lang("Reading configuration file failed, please delete the website and add it again!"))
+
+        changed = False
+        cleared_bindings = []
+        proxy_info_list = proxy_json_conf.get("proxy_info", [])
+        if proxy_path:
+            matched_proxy_info = None
+            for proxy_info in proxy_info_list:
+                if proxy_info.get("proxy_path") == proxy_path:
+                    matched_proxy_info = proxy_info
+                    break
+            if not matched_proxy_info:
+                return public.return_message(-1, 0, public.lang("No proxy information found for this URL [{}]!", proxy_path))
+            binding = self._normalize_source_binding(matched_proxy_info.get("source_binding"), "proxy_info")
+            if self._source_binding_enabled(binding):
+                if bind_type and binding.get("bind_type") != bind_type:
+                    return public.return_message(-1, 0, public.lang("Binding source type does not match!"))
+                if source_id and binding.get("source_id") != source_id:
+                    return public.return_message(-1, 0, public.lang("Binding source ID does not match!"))
+                cleared_bindings.append({
+                    "binding": binding,
+                    "proxy_path": matched_proxy_info.get("proxy_path", "/"),
+                })
+                matched_proxy_info["source_binding"] = self._empty_source_binding("proxy_info")
+                changed = True
+        else:
+            for proxy_info in proxy_info_list:
+                binding = self._normalize_source_binding(proxy_info.get("source_binding"), "proxy_info")
+                if not self._source_binding_enabled(binding):
+                    continue
+                if bind_type and binding.get("bind_type") != bind_type:
+                    continue
+                if source_id and binding.get("source_id") != source_id:
+                    continue
+                cleared_bindings.append({
+                    "binding": binding,
+                    "proxy_path": proxy_info.get("proxy_path", "/"),
+                })
+                proxy_info["source_binding"] = self._empty_source_binding("proxy_info")
+                changed = True
+
+        top_binding = self._normalize_source_binding(proxy_json_conf.get("source_binding"), "project")
+        if self._source_binding_enabled(top_binding):
+            top_should_clear = False
+            if proxy_path:
+                for item in cleared_bindings:
+                    binding = item["binding"]
+                    if binding.get("source_id") == top_binding.get("source_id") and binding.get("bind_type") == top_binding.get("bind_type"):
+                        top_should_clear = True
+                        break
+            elif bind_type or source_id:
+                top_should_clear = ((not bind_type or top_binding.get("bind_type") == bind_type) and
+                                    (not source_id or top_binding.get("source_id") == source_id))
+            else:
+                top_should_clear = True
+            if top_should_clear:
+                cleared_bindings.append({
+                    "binding": top_binding,
+                    "proxy_path": proxy_path,
+                })
+                proxy_json_conf["source_binding"] = self._empty_source_binding("project")
+                changed = True
+
+        if not changed:
+            return public.return_message(-1, 0, public.lang("No binding information found!"))
+
+        self._refresh_project_source_binding(proxy_json_conf)
+
+        self._site_proxy_conf_path = "{path}/{site_name}/{site_name}.json".format(
+            path=self._proxy_config_path,
+            site_name=site_name
+        )
+        public.writeFile(self._site_proxy_conf_path, json.dumps(proxy_json_conf))
+        self._update_site_project_config(site_name, proxy_json_conf)
+
+        for item in cleared_bindings:
+            binding = item["binding"]
+            if binding.get("bind_type") != "supervisor":
+                continue
+            try:
+                self._clear_supervisor_proxy_binding(binding.get("source_id"), site_name, item.get("proxy_path", ""))
+            except Exception as ex:
+                public.print_log("clear supervisor reverse proxy binding failed: {}".format(ex))
+
+        return public.return_message(0, 0, public.lang("Unbinding successful!"))
+
+    def proxy_unbind_by_supervisor(self, get):
+        if not get.get("bind_type", ""):
+            get.bind_type = "supervisor"
+        return self.proxy_unbind_source(get)
+
+    def action_by_supervisor(self, get):
+        '''
+            @name Execute action on a bound source, currently Supervisor only
+        '''
+        bind_type = get.get("bind_type", "")
+        source_id = get.get("source_id", "")
+        action = get.get("operate", "")
+        if bind_type != "supervisor":
+            return public.return_message(-1, 0, public.lang("Unsupported binding source type: {}", bind_type))
+        if not source_id:
+            return public.return_message(-1, 0, public.lang("The binding source ID cannot be empty!"))
+        if action not in ["log", "start", "stop", "restart", "clear"]:
+            return public.return_message(-1, 0, public.lang("Unsupported source action: {}", action))
+
+        plugin_exists, _ = self._check_supervisor_plugin_exists()
+        if not plugin_exists:
+            return self._supervisor_plugin_missing_response()
+
+        supervisor_config = self._get_supervisor_config_map()
+        if source_id not in supervisor_config:
+            return public.return_message(-1, 0, public.lang("The Supervisor daemon [{}] does not exist!", source_id))
+
+        try:
+            supervisor_obj = self._get_supervisor_obj()
+            if action == "log":
+                log_type = get.get("log_type", "normal")
+                result = supervisor_obj.GetProjectLog(public.to_dict_obj({
+                    "pjname": source_id,
+                    "log_type": log_type
+                }))
+                return public.return_message(0, 0, result)
+            if action == "start":
+                result = supervisor_obj.StartProcess(public.to_dict_obj({"program": source_id}))
+            elif action == "stop":
+                result = supervisor_obj.StopProcess(public.to_dict_obj({"program": source_id}))
+            elif action == "restart":
+                result = supervisor_obj.StopProcess(public.to_dict_obj({"program": source_id}))
+                result = supervisor_obj.StartProcess(public.to_dict_obj({"program": source_id}))
+            elif action == "clear":
+                log_type = get.get("log_type", "normal")
+                result = supervisor_obj.clear_record(public.to_dict_obj({
+                    "filename": source_id,
+                    "log_type": log_type
+                }))
+                return public.return_message(0, 0, result)
+            else:
+                supervisor_obj.StopProcess(public.to_dict_obj({"program": source_id}))
+                result = supervisor_obj.StartProcess(public.to_dict_obj({"program": source_id}))
+
+            if isinstance(result, dict) and result.get("status"):
+                return public.return_message(0, 0, result.get("msg", public.lang("Operation successful!")))
+            return public.return_message(-1, 0, result.get("msg", public.lang("Operation failed!")) if isinstance(result, dict) else result)
+        except Exception as ex:
+            public.print_log("proxy source action failed: {}".format(ex))
+            return public.return_message(-1, 0, str(ex))
+
+    def clear_source_binding_by_supervisor(self, get):
+        source_id = get.get("source_id", get.get("program", ""))
+        if not source_id:
+            return public.return_message(-1, 0, public.lang("The binding source ID cannot be empty!"))
+        count = self._clear_proxy_source_bindings_by_supervisor(source_id)
+        self._clear_supervisor_proxy_binding(source_id)
+        return public.return_message(0, 0, {"count": count})
+
     # 2024/4/23 下午2:12 保存并重新生成新的nginx配置文件
     def update_conf(self, get):
         '''
@@ -4017,5 +4806,6 @@ server {{
             site_name=get.site_name
         )
         public.writeFile(self._site_proxy_conf_path, json.dumps(get.proxy_json_conf))
+        self._update_site_project_config(get.site_name, get.proxy_json_conf)
 
         return public.return_message(0, 0, public.lang("Save successful!"))

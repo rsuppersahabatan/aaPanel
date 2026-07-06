@@ -890,7 +890,9 @@
 			"config_205": "Edit online [{0}]",
 			"config_206": "Edit aturan [{0}]",
 			"config_207": "Saring serangan penetrasi menggunakan cookie",
-			"config_208": "Pengujian Penetrasi Filter untuk Alat Pengujian Pemindaian Umum"
+			"config_208": "Pengujian Penetrasi Filter untuk Alat Pengujian Pemindaian Umum",
+			"config_209": "Mode Hanya Baca",
+			"config_210": "Mode hanya baca. Jangan aktifkan di luar latihan serangan dan pertahanan. Login, pembayaran, pencarian, pendaftaran, komentar, dan fitur lainnya dapat terpengaruh."
 		},
 		"Install": {
 			"index_1": "Kiat: Halaman ini dapat dimatikan di pengaturan panel",
@@ -902,6 +904,65 @@
 			"index_7": "Hentikan peretas",
 			"index_8": "Instal sekarang",
 			"index_9": "Beli sekarang"
+		},
+		"ProtectionScreen": {
+			"defaultTitle": "Dasbor WAF aaPanel",
+			"setting": {
+				"title": "Pengaturan Dasbor",
+				"monitorTitle": "Judul monitor",
+				"monitorTitlePlaceholder": "Masukkan judul monitor",
+				"serverCoords": "Koordinat server",
+				"longitude": "Bujur",
+				"longitudePlaceholder": "Masukkan bujur, mis. 116.395645",
+				"latitude": "Lintang",
+				"latitudePlaceholder": "Masukkan lintang, mis. 39.929986",
+				"currentCoords": "Koordinat",
+				"locationTip": "Lokasi hanya sebagai referensi dan mungkin tidak akurat.",
+				"titleRequired": "Masukkan judul monitor",
+				"saveFailed": "Gagal menyimpan",
+				"invalidCoords": "Masukkan bujur dan lintang yang valid",
+				"saveSuccess": "Berhasil disimpan"
+			},
+			"stats": {
+				"todayRequests": "Req Hari Ini",
+				"maliciousRequests": "Req Berbahaya",
+				"totalIntercepts": "Total Blokir",
+				"todayIntercepts": "Blokir Hari Ini"
+			},
+			"actions": {
+				"countdownRefresh": "Refresh hitung mundur",
+				"countdown": "Hitung mundur",
+				"fullscreen": "Layar penuh",
+				"setting": "Pengaturan"
+			},
+			"realtime": {
+				"title": "Pertahanan Web Langsung",
+				"empty": "Tidak ada data perlindungan real-time"
+			},
+			"attackDetail": {
+				"attackIp": "IP Serangan",
+				"attackType": "Jenis: ",
+				"domain": "Domain: ",
+				"time": "Waktu: ",
+				"empty": "Tidak ada detail serangan"
+			},
+			"chart": {
+				"realtimeQps": "QPS real-time",
+				"time": "Waktu",
+				"qps": "QPS",
+				"sevenDayTrend": "Blokir 7 hari",
+				"attackTime": "Waktu serangan",
+				"attackCount": "Jumlah serangan",
+				"interceptTypeToday": "Jenis blokir",
+				"pieValue": "{0} kali, {1}%",
+				"noInterceptDataToday": "Tidak ada data blokir hari ini"
+			},
+			"map": {
+				"country": "Negara",
+				"count": "Jumlah",
+				"ipTotal": "Total IP",
+				"unknown": "Tidak diketahui"
+			}
 		},
 		"Api": {
 			"overview_1": "Aktivasi satu klik sedang berlangsung, harap tunggu ...",

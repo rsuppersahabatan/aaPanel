@@ -876,7 +876,9 @@
 			"config_205": "Edição Online [{0}]",
 			"config_206": "Editar regra [{0}]",
 			"config_207": "Filtrar ataques de penetração usando cookies",
-			"config_208": "Filtrar testes de penetração para ferramentas de teste de varredura comuns"
+			"config_208": "Filtrar testes de penetração para ferramentas de teste de varredura comuns",
+			"config_209": "Modo somente leitura",
+			"config_210": "Modo somente leitura. Não ative fora de exercícios de ataque e defesa. Login, pagamento, pesquisa, registro, comentários e outras funções podem ser afetados."
 		},
 		"Install": {
 			"index_1": "Dica: Esta página pode ser desligada nas configurações do painel",
@@ -888,6 +890,65 @@
 			"index_7": "Parar hackers",
 			"index_8": "Instalar agora",
 			"index_9": "Comprar agora"
+		},
+		"ProtectionScreen": {
+			"defaultTitle": "Painel WAF aaPanel",
+			"setting": {
+				"title": "Configurações do painel",
+				"monitorTitle": "Título do monitor",
+				"monitorTitlePlaceholder": "Digite o título do monitor",
+				"serverCoords": "Coordenadas do servidor",
+				"longitude": "Longitude",
+				"longitudePlaceholder": "Digite a longitude, ex. 116.395645",
+				"latitude": "Latitude",
+				"latitudePlaceholder": "Digite a latitude, ex. 39.929986",
+				"currentCoords": "Coordenadas",
+				"locationTip": "A localização é apenas referência e pode não ser precisa.",
+				"titleRequired": "Digite o título do monitor",
+				"saveFailed": "Falha ao salvar",
+				"invalidCoords": "Digite longitude e latitude válidas",
+				"saveSuccess": "Salvo com sucesso"
+			},
+			"stats": {
+				"todayRequests": "Req. hoje",
+				"maliciousRequests": "Req. maliciosas",
+				"totalIntercepts": "Bloqueios totais",
+				"todayIntercepts": "Bloqueios hoje"
+			},
+			"actions": {
+				"countdownRefresh": "Atualização regressiva",
+				"countdown": "Contagem regressiva",
+				"fullscreen": "Tela cheia",
+				"setting": "Configurações"
+			},
+			"realtime": {
+				"title": "Defesa Web ao vivo",
+				"empty": "Sem dados de proteção em tempo real"
+			},
+			"attackDetail": {
+				"attackIp": "IP de ataque",
+				"attackType": "Tipo: ",
+				"domain": "Domínio: ",
+				"time": "Hora: ",
+				"empty": "Sem detalhes do ataque"
+			},
+			"chart": {
+				"realtimeQps": "QPS em tempo real",
+				"time": "Hora",
+				"qps": "QPS",
+				"sevenDayTrend": "Bloqueios 7 dias",
+				"attackTime": "Hora do ataque",
+				"attackCount": "Contagem de ataques",
+				"interceptTypeToday": "Tipos de bloqueio",
+				"pieValue": "{0} vezes, {1}%",
+				"noInterceptDataToday": "Sem dados de bloqueio hoje"
+			},
+			"map": {
+				"country": "País",
+				"count": "Contagem",
+				"ipTotal": "Total de IPs",
+				"unknown": "Desconhecido"
+			}
 		},
 		"Api": {
 			"overview_1": "Ativação com um clique em andamento, aguarde...",

@@ -452,6 +452,78 @@
 			"index_42": "Mengedit, tunggu ...",
 			"index_43": "Mengatur jenis, harap tunggu ...",
 			"index_44": "Membuat, tolong tunggu ..."
+		},
+		"BillionMail": {
+			"Service": {
+				"name": "Billion Mail",
+				"latest": "Terbaru",
+				"checking": "Memeriksa",
+				"stopped": "Berhenti",
+				"running": "Berjalan",
+				"version": "Versi: {0}"
+			},
+			"Preview": {
+				"paused": "BillionMail dijeda",
+				"settingsTitle": "Pengaturan Billion Mail"
+			},
+			"Api": {
+				"starting": "Memulai, harap tunggu...",
+				"stopping": "Menghentikan, harap tunggu...",
+				"restarting": "Memulai ulang, harap tunggu...",
+				"uninstalling": "Menghapus instalasi, harap tunggu..."
+			},
+			"Install": {
+				"title": "Instal BillionMail",
+				"heroLine1": "Pemasaran Email Self-Hosted",
+				"heroLine2": "Dibuat Sederhana",
+				"description": "Jalankan server email dan platform pemasaran Anda sendiri hanya dengan beberapa klik. Kelola kampanye, milis, analitik, dan keterkiriman sambil tetap memiliki kendali penuh atas infrastruktur.",
+				"featureCampaigns": "Kampanye",
+				"featureMailingLists": "Milis",
+				"featureAnalytics": "Analitik",
+				"featureDeliverability": "Keterkiriman",
+				"featureOwnership": "Kendali Penuh",
+				"installBillionMail": "Instal BillionMail",
+				"installClassicMail": "Instal ClassicMail",
+				"versionTag": "Terbaru / {0} / Docker",
+				"recommended": "Direkomendasikan",
+				"legacy": "Legacy",
+				"classicName": "ClassicMail",
+				"billionMailDesc": "Platform pemasaran email self-hosted modern dengan analitik lengkap dan manajemen kampanye.",
+				"classicMailDesc": "Server email legacy yang stabil untuk sistem lama. Pengiriman dasar dengan fitur penting.",
+				"legacyCompatibility": "Kompatibilitas legacy",
+				"bannerPreview": "Pratinjau dashboard BillionMail"
+			},
+			"Guide": {
+				"title": "Instalasi BillionMail",
+				"minimize": "Sembunyikan",
+				"close": "Tutup",
+				"restore": "Pulihkan",
+				"startInstall": "Mulai Instalasi",
+				"config": "Konfigurasi",
+				"installer": "Installer BillionMail",
+				"completed": "{0}% selesai",
+				"failed": "Instalasi gagal. Periksa log tugas lalu coba lagi.",
+				"startingInstall": "Memulai instalasi",
+				"fetchingLogs": "Mengambil log installer...",
+				"waitingLogs": "Menunggu log installer...",
+				"processing": "Memproses",
+				"installedTitle": "BillionMail berhasil diinstal",
+				"installingTitle": "Menginstal BillionMail",
+				"readyTitle": "Siap menginstal BillionMail",
+				"readyMinimized": "Siap memulai instalasi.",
+				"serviceReady": "Layanan email siap.",
+				"preparing": "Menyiapkan layanan email.",
+				"progressDescription": "Mengambil log installer saat layanan email disiapkan.",
+				"readyDescription": "Mulai dengan pengaturan default, atau buka konfigurasi untuk menyesuaikan instalasi.",
+				"successDescription": "Layanan email siap. Lanjutkan dengan konfigurasi konsol.",
+				"installPath": "Path instalasi",
+				"serviceStatus": "Status layanan",
+				"version": "Versi",
+				"open": "Buka",
+				"configurationParameters": "Parameter konfigurasi",
+				"active": "Aktif",
+				"successTip": "Buka konsol BillionMail setelah instalasi dan selesaikan pengaturan domain, DNS, dan verifikasi pengirim."
+			}
 		}
 	}
 }

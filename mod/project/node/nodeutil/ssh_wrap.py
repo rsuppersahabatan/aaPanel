@@ -1,9 +1,11 @@
 import json
 import os.path
+import time
 import traceback
-from typing import Optional, Tuple, Callable, Union, Dict
+from typing import Optional, Tuple, Callable, Union, Dict, List
 from mod.base.ssh_executor import SSHExecutor, CommandResult
 from mod.project.node.dbutil import ServerNodeDB, Node
+from mod.project.node.nodeutil.monitor_service import build_service_groups, normalize_service_targets, service_unknown_statuses
 
 import public
 
@@ -12,6 +14,11 @@ def is_much_difference(a:float, b:float)->bool:
         return True
     ratio = a / b
     return ratio >= 10 or ratio <= 0.1
+
+
+def _shell_single_quote(value: str) -> str:
+    return "'" + value.replace("'", "'\"'\"'") + "'"
+
 
 class SSHApi:
     is_local = False
@@ -66,6 +73,153 @@ class SSHApi:
             return None, "data in wrong format: %s" % str(data)
         except Exception as e:
             return None, str(e)
+
+    def get_service_status(self, services) -> Tuple[List[dict], str]:
+        service_list = [item for item in normalize_service_targets(services) if int(item.get("enabled", 1)) == 1]
+        if not service_list:
+            return [], ""
+        service_args = " ".join(_shell_single_quote(item["target_key"]) for item in service_list)
+        cmd = """
+for svc in {service_args}; do
+  if command -v systemctl >/dev/null 2>&1; then
+    systemctl is-active --quiet "$svc"
+    rc=$?
+    state=$(systemctl is-active "$svc" 2>/dev/null || true)
+  else
+    service "$svc" status >/dev/null 2>&1
+    rc=$?
+    if [ "$rc" = "0" ]; then state="active"; else state="inactive"; fi
+  fi
+  if [ "$rc" = "0" ]; then running=1; else running=0; fi
+  printf '%s\\t%s\\t%s\\n' "$svc" "$running" "$state"
+done
+""".format(service_args=service_args)
+        executor = None
+        try:
+            executor = self._get_ssh_executor()
+            executor.open()
+            exit_code, stdout, stderr = executor.run(cmd)
+            if exit_code != 0 and not stdout:
+                return service_unknown_statuses(service_list, stderr or "Service status check failed"), stderr
+            target_map = {item["target_key"]: item for item in service_list}
+            now = int(time.time())
+            result = []
+            for line in str(stdout or "").splitlines():
+                parts = line.split("\t")
+                if len(parts) < 3:
+                    continue
+                key = parts[0].strip()
+                item = target_map.get(key)
+                if not item:
+                    continue
+                running = parts[1].strip() == "1"
+                result.append({
+                    "name": key,
+                    "target_key": key,
+                    "target_name": item["target_name"],
+                    "status": 1 if running else 0,
+                    "running": running,
+                    "state": parts[2].strip() or ("active" if running else "inactive"),
+                    "error_msg": "",
+                    "ts": now,
+                })
+            if not result:
+                return service_unknown_statuses(service_list, stderr or "Service status data is empty"), stderr
+            return result, ""
+        except RuntimeError:
+            return service_unknown_statuses(service_list, "SSH connection failed"), "SSH connection failed"
+        except Exception as e:
+            return service_unknown_statuses(service_list, str(e)), str(e)
+        finally:
+            if executor:
+                executor.close()
+
+    def get_service_options(self) -> Tuple[Dict[str, list], str]:
+        cmd = r"""
+check_status() {
+  svc="$1"
+  if command -v systemctl >/dev/null 2>&1; then
+    systemctl is-active --quiet "$svc"
+    rc=$?
+    state=$(systemctl is-active "$svc" 2>/dev/null || true)
+  else
+    service "$svc" status >/dev/null 2>&1
+    rc=$?
+    if [ "$rc" = "0" ]; then state="active"; else state="inactive"; fi
+  fi
+  if [ "$rc" = "0" ]; then running=1; else running=0; fi
+  printf '%s\t%s' "$running" "$state"
+}
+emit_service() {
+  family="$1"; key="$2"; label="$3"; paths="$4"
+  exists=0
+  old_ifs="$IFS"; IFS=":"
+  for p in $paths; do
+    if [ -e "$p" ]; then exists=1; break; fi
+  done
+  IFS="$old_ifs"
+  if [ "$exists" = "1" ]; then
+    status=$(check_status "$key")
+    printf 'SERVICE\t%s\t%s\t%s\t\t\t%s\n' "$family" "$key" "$label" "$status"
+  fi
+}
+emit_service nginx nginx Nginx "/www/server/nginx/sbin/nginx:/www/server/nginx/nginx/sbin/nginx:/etc/init.d/nginx"
+emit_service mysql mysqld MySQL "/www/server/mysql/bin/mysqld:/etc/init.d/mysqld"
+emit_service apache httpd Apache "/www/server/apache/bin/httpd:/etc/init.d/httpd"
+emit_service redis redis Redis "/www/server/redis/src/redis-server:/etc/init.d/redis"
+emit_service pure-ftpd pure-ftpd Pure-Ftpd "/www/server/pure-ftpd/sbin/pure-ftpd:/etc/init.d/pure-ftpd"
+emit_service memcached memcached Memcached "/usr/local/memcached/bin/memcached:/etc/init.d/memcached"
+emit_service mongodb mongodb MongoDB "/www/server/mongodb/bin/mongod:/etc/init.d/mongodb"
+emit_service pgsql pgsql PostgreSQL "/www/server/pgsql/bin/postgres:/etc/init.d/pgsql"
+if [ -d /www/server/php ]; then
+  for dir in /www/server/php/[0-9][0-9]; do
+    [ -d "$dir" ] || continue
+    ver=$(basename "$dir")
+    if [ -x "$dir/sbin/php-fpm" ] || [ -x "$dir/bin/php" ] || [ -e "/etc/init.d/php-fpm-$ver" ]; then
+      status=$(check_status "php-fpm-$ver")
+      major=$(printf '%s' "$ver" | cut -c1)
+      minor=$(printf '%s' "$ver" | cut -c2)
+      printf 'SERVICE\tphp\tphp-fpm-%s\tPHP %s.%s\t%s\t%s.%s\t%s\n' "$ver" "$major" "$minor" "$ver" "$major" "$minor" "$status"
+    fi
+  done
+fi
+"""
+        executor = None
+        try:
+            executor = self._get_ssh_executor()
+            executor.open()
+            exit_code, stdout, stderr = executor.run(cmd)
+            if exit_code != 0 and not stdout:
+                return {"services": [], "groups": []}, stderr or "Service discovery failed"
+            services = []
+            for line in str(stdout or "").splitlines():
+                parts = line.split("\t")
+                if len(parts) < 8 or parts[0] != "SERVICE":
+                    continue
+                running = parts[6].strip() == "1"
+                services.append({
+                    "target_type": "service",
+                    "service_family": parts[1].strip(),
+                    "target_key": parts[2].strip(),
+                    "target_name": parts[3].strip(),
+                    "version": parts[4].strip(),
+                    "version_name": parts[5].strip(),
+                    "enabled": 0,
+                    "installed": 1,
+                    "is_versioned": 1 if parts[1].strip() == "php" else 0,
+                    "status": 1 if running else 0,
+                    "running": running,
+                    "state": parts[7].strip() or ("active" if running else "inactive"),
+                    "sort": 0,
+                })
+            return {"services": services, "groups": build_service_groups(services)}, ""
+        except RuntimeError:
+            return {"services": [], "groups": []}, "SSH connection failed"
+        except Exception as e:
+            return {"services": [], "groups": []}, str(e)
+        finally:
+            if executor:
+                executor.close()
 
     @staticmethod
     def _tans_net_work_form_data(data: dict):

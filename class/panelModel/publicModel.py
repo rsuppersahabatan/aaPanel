@@ -36,7 +36,7 @@ class main(panelBase):
             res = cache.get(skey)
             if res: return res
 
-            res = public.httpPost('https://wafapi2.aapanel.com/Api/getUpdateLogs?type=Linux',{})
+            res = public.httpPost(f'{public.OfficialWaf2Base()}/Api/getUpdateLogs?type=Linux', {})
 
             start_index = res.find('(') + 1
             end_index = res.rfind(')')

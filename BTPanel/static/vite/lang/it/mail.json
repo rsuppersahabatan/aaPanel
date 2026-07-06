@@ -452,6 +452,78 @@
 			"index_42": "Modifica, per favore aspetta ...",
 			"index_43": "Impostazione dei tipi, aspetta ...",
 			"index_44": "Creazione in corso, per favore aspetta ..."
+		},
+		"BillionMail": {
+			"Service": {
+				"name": "Billion Mail",
+				"latest": "Ultima",
+				"checking": "Controllo in corso",
+				"stopped": "Arrestato",
+				"running": "In esecuzione",
+				"version": "Versione: {0}"
+			},
+			"Preview": {
+				"paused": "BillionMail è in pausa",
+				"settingsTitle": "Impostazioni Billion Mail"
+			},
+			"Api": {
+				"starting": "Avvio in corso, attendere...",
+				"stopping": "Arresto in corso, attendere...",
+				"restarting": "Riavvio in corso, attendere...",
+				"uninstalling": "Disinstallazione in corso, attendere..."
+			},
+			"Install": {
+				"title": "Installa BillionMail",
+				"heroLine1": "Email marketing self-hosted",
+				"heroLine2": "reso semplice",
+				"description": "Avvia il tuo server email e la tua piattaforma marketing con pochi clic. Gestisci campagne, mailing list, analisi e deliverability mantenendo il pieno controllo della tua infrastruttura.",
+				"featureCampaigns": "Campagne",
+				"featureMailingLists": "Mailing list",
+				"featureAnalytics": "Analisi",
+				"featureDeliverability": "Deliverability",
+				"featureOwnership": "Pieno controllo",
+				"installBillionMail": "Installa BillionMail",
+				"installClassicMail": "Installa ClassicMail",
+				"versionTag": "Ultima / {0} / Docker",
+				"recommended": "Consigliato",
+				"legacy": "Legacy",
+				"classicName": "ClassicMail",
+				"billionMailDesc": "Piattaforma moderna di email marketing self-hosted con analisi complete e gestione delle campagne.",
+				"classicMailDesc": "Server email legacy stabile per sistemi più datati. Invio di base con funzionalità essenziali.",
+				"legacyCompatibility": "Compatibilità legacy",
+				"bannerPreview": "Anteprima dashboard BillionMail"
+			},
+			"Guide": {
+				"title": "Installazione BillionMail",
+				"minimize": "Riduci",
+				"close": "Chiudi",
+				"restore": "Ripristina",
+				"startInstall": "Avvia installazione",
+				"config": "Configura",
+				"installer": "Installer BillionMail",
+				"completed": "{0}% completato",
+				"failed": "Installazione non riuscita. Controlla il log attività e riprova.",
+				"startingInstall": "Avvio installazione",
+				"fetchingLogs": "Recupero log dell’installer...",
+				"waitingLogs": "In attesa dei log dell’installer...",
+				"processing": "Elaborazione",
+				"installedTitle": "BillionMail installato correttamente",
+				"installingTitle": "Installazione di BillionMail",
+				"readyTitle": "Pronto per installare BillionMail",
+				"readyMinimized": "Pronto per avviare l’installazione.",
+				"serviceReady": "Il servizio mail è pronto.",
+				"preparing": "Preparazione dei servizi mail.",
+				"progressDescription": "Recupero dei log mentre vengono preparati i servizi mail.",
+				"readyDescription": "Avvia con le impostazioni predefinite oppure apri la configurazione per personalizzare l’installazione.",
+				"successDescription": "Il servizio mail è pronto. Continua con la configurazione della console.",
+				"installPath": "Percorso installazione",
+				"serviceStatus": "Stato servizio",
+				"version": "Versione",
+				"open": "Apri",
+				"configurationParameters": "Parametri di configurazione",
+				"active": "Attivo",
+				"successTip": "Apri la console BillionMail dopo l’installazione e completa dominio, DNS e verifica del mittente."
+			}
 		}
 	}
 }

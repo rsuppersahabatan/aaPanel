@@ -220,7 +220,7 @@ class userlogin:
             # 提交
             if not public.cache_get(pkey):
                 try:
-                    public.run_thread(public.httpPost, ("https://geterror.aapanel.com/bt_error/index.php", error_infos))
+                    public.run_thread(public.httpPost, (f"{public.OfficialGetErrorBase()}/bt_error/index.php", error_infos))
                     public.cache_set(pkey, 1, 1800)
                 except Exception:
                     pass

@@ -29,6 +29,23 @@ class DictCache(object):
         self.data[key] = value
 
 
+def _get_current_session_cookie(app):
+    try:
+        sid = getattr(session, 'sid', None)
+        if not sid:
+            return request.cookies.get(app.config['SESSION_COOKIE_NAME'], '')
+        if app.config.get('SESSION_USE_SIGNER'):
+            from itsdangerous import want_bytes
+            signer = app.session_interface._get_signer(app)
+            signed_sid = signer.sign(want_bytes(sid))
+            if not isinstance(signed_sid, str):
+                signed_sid = signed_sid.decode()
+            return signed_sid
+        return sid
+    except:
+        return request.cookies.get(app.config['SESSION_COOKIE_NAME'], '')
+
+
 class Compress(object):
     """
     The Compress object allows your application to use Flask-Compress.
@@ -91,19 +108,24 @@ class Compress(object):
 
         if 'rm_ssl' in g:
             import public
+            response.headers['Strict-Transport-Security'] = 'max-age=0'
+            response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
             try:
                 for k,v in request.cookies.items():
                     response.set_cookie(k,'',expires='Thu, 01-Jan-1970 00:00:00 GMT',path='/')
             except:
                 pass
             session_name = app.config['SESSION_COOKIE_NAME']
-            session_id = public.get_session_id()
+            session_id = _get_current_session_cookie(app)
             response.set_cookie(session_name,'',expires='Thu, 01-Jan-1970 00:00:00 GMT',path='/')
-            response.set_cookie(session_name, session_id, path='/', max_age=86400 * 30,httponly=True)
+            response.set_cookie(session_name, session_id, path='/', max_age=86400 * 30,httponly=True,samesite='Lax')
 
             request_token = request.cookies.get('request_token','')
             if request_token:
                 response.set_cookie('request_token',request_token,path='/',max_age=86400 * 30)
+            switch_token = getattr(g, 'panel_ssl_switch_token', '')
+            if switch_token:
+                response.set_cookie('panel_ssl_switch', switch_token, path='/', max_age=180, httponly=True, samesite='Lax')
 
         if (response.mimetype not in app.config['COMPRESS_MIMETYPES'] or
             'gzip' not in accept_encoding.lower() or

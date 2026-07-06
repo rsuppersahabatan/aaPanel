@@ -174,7 +174,7 @@ class panelPgsql:
         if not conf_data:
             public.ExecShell("/www/server/pgsql/data/postgresql.conf  /www/server/pgsql/data/postgresql.bak")
             public.ExecShell(
-                "wget -O /www/server/pgsql/data/postgresql.conf https://node.aapanel.com/conf/postgresql.conf;chmod 600 /www/server/pgsql/data/postgresql.conf;chown postgres:postgres /www/server/pgsql/data/postgresql.conf"
+                f"wget -O /www/server/pgsql/data/postgresql.conf {public.OfficialDownloadBase()}/conf/postgresql.conf;chmod 600 /www/server/pgsql/data/postgresql.conf;chown postgres:postgres /www/server/pgsql/data/postgresql.conf"
             )
             time.sleep(2)
             conf_data = public.readFile(cls._CONFIG_PATH)

@@ -204,6 +204,35 @@
 			"open": "Open",
 			"decompress": "Extract"
 		},
+		"cloudStorageTransfer": {
+			"allFilesSkipped": "All files are skipped",
+			"createFolder": "Create folder",
+			"deleteConfirm": "Are you sure to delete {0} [{1}]?",
+			"deleteFile": "Delete file",
+			"downloadConfirm": "Are you sure to send [{0}] to the left?",
+			"file": "File",
+			"folderName": "Folder name",
+			"folderNamePlaceholder": "Enter folder name",
+			"folder": "Folder",
+			"localFiles": "Local files",
+			"overwriteRiskConfirm": "Transfer [{0}]. If the file exists, it will be overwritten. Continue?",
+			"rootDirectoryCannotUpload": "Root directory cannot upload files",
+			"searchPlaceholder": "Enter file name",
+			"sendToLeft": "Send to left",
+			"sendToRight": "Send to right",
+			"taskPreparing": "Preparing task...",
+			"taskStep": "Step {0}",
+			"transferComplete": "Transfer complete",
+			"transferFailed": "Transfer failed",
+			"transferInProgress": "Transferring, please wait...",
+			"transferProgress": "Transfer progress",
+			"uploadCanceled": "Upload canceled: {0}",
+			"uploadFailed": "Upload failed",
+			"uploadFilesTo": "Upload files to [{0}]",
+			"uploadFolder": "Upload folder",
+			"uploadFolderConfirm": "Folder [{0}] will be compressed into an archive before upload. Continue?",
+			"fileUploadFailed": "{0} upload failed"
+		},
 		"contextMenu": {
 			"archivePreview": "ZIP/GZ preview",
 			"archivePreviewWithType": "{type} preview",
@@ -224,6 +253,13 @@
 			"fileSync": "File Sync",
 			"malwareScan": "Malware Scan",
 			"createCopy": "Create Copy",
+			"uploadToCloud": "Upload to Cloud Storage",
+			"cloudStorage": {
+				"ftp": "FTP Storage",
+				"awsS3": "AWS S3 Storage",
+				"gdrive": "Google Drive",
+				"gcloudStorage": "Google Cloud Storage"
+			},
 			"loading": {
 				"batchSetting": "Batch setting, please wait...",
 				"copying": "Copying, please wait...",
@@ -236,7 +272,8 @@
 			"messages": {
 				"addedToFavorites": "Successfully added to favorites.",
 				"copySuccess": "Copy successfully, Please click [Paste] or Ctrl + V to paste",
-				"cutSuccess": "Cut successfully, Please click [Paste] or Ctrl + V to paste"
+				"cutSuccess": "Cut successfully, Please click [Paste] or Ctrl + V to paste",
+				"cloudUploadNotConnected": "Upload to cloud storage is not connected yet."
 			},
 			"defaultNames": {
 				"untitledFile": "untitled file",

@@ -15,7 +15,7 @@
 			"app_list_2": "앱 로그",
 			"app_list_3": "앱 백업",
 			"app_list_4": "{0} [{1}]를 원하십니까?",
-			"app_list_5": "디테일 디스플레이",
+			"app_list_5": "상세 표시",
 			"app_list_6": "[{0}]를 삭제 하시겠습니까?",
 			"app_list_8": "이 앱의 모든 데이터도 삭제하세요",
 			"app_list_9": "설치 디렉토리를 입력하세요",
@@ -61,7 +61,7 @@
 				"index_18": "백업 파일을 즉시 가져 오면 기존 파일 데이터를 덮어 쓸 수 있습니다. 관련 데이터를 백업했는지 확인하세요.",
 				"index_19": "업로드 할 파일을 선택하세요"
 			},
-			"app_list_18": "One-click login"
+			"app_list_18": "원클릭 로그인"
 		},
 		"Overview": {
 			"index_1": "컨테이너 실행",
@@ -75,7 +75,7 @@
 			"overviewTitle": "리소스 개요",
 			"containerCount": "컨테이너",
 			"spaceUsed": "사용된 공간",
-			"composeCount": "구성하다",
+			"composeCount": "구성",
 			"composeProjects": "Docker 작성 프로젝트",
 			"imageCount": "이미지",
 			"networkCount": "네트워크",
@@ -89,7 +89,7 @@
 			"filterStopped": "중지됨",
 			"searchPlaceholder": "컨테이너 이름 또는 이미지 이름 검색",
 			"goToApp": "앱 스토어로 이동하여 설치",
-			"pullCloudImage": "Pull image from the cloud"
+			"pullCloudImage": "클라우드에서 이미지 가져오기"
 		},
 		"Container": {
 			"index_1": "컨테이너 만들기",
@@ -198,13 +198,13 @@
 				"index_40": "CPU 한도",
 				"index_41": "메모리 제한",
 				"index_42": "꼬리표",
-				"index_43": "컨테이너 태그, 한 줄 당 1 개의 컨테이너 태그 (예 : key = 값",
-				"index_44": "env 변수",
+				"index_43": "컨테이너 태그, 한 줄 당 1 개의 컨테이너 태그 (예 : 키 = 값",
+				"index_44": "환경 변수",
 				"index_45": "다음과 같이 환경 변수 형식을 추가하세요. 여러 가지가있는 경우 \n 추가하세요 : Java_home =/usr/local/java8 \n hostname = master",
 				"index_46": "주목",
 				"index_47": "컨테이너 비고",
 				"index_48": "(최대 값 : {0})",
-				"index_49": "[명령, EntryPoint, 태그 및 ENV 변수]",
+				"index_49": "[명령, EntryPoint, 태그 및 환경 변수]",
 				"index_50": "구성 오류로 인해 편집 된 컨테이너가 실행되지 않거나 손실 될 수 있습니다.",
 				"index_51": ", 그러니주의해서 계속 진행하세요!",
 				"index_52": "코어",
@@ -228,7 +228,7 @@
 				"port_2": "예 : 80",
 				"port_3": "컨테이너",
 				"port_4": "규약",
-				"command_1": "Execute 명령을 입력하고 Enter를 눌러 실행하세요.",
+				"command_1": "실행 명령을 입력하고 Enter를 눌러 실행하세요.",
 				"command_2": "명령 실행",
 				"command_3": "명령 실행 결과 :",
 				"command_4": "없음 로그",
@@ -352,7 +352,7 @@
 					"index_24": "도메인 이름",
 					"index_25": "만료일",
 					"index_26": "상표",
-					"index_27": "Free Cert"
+					"index_27": "무료 인증서"
 				}
 			},
 			"terminal": {
@@ -483,7 +483,7 @@
 			"push_4": "태그를 입력하세요",
 			"push_5": "올바른 태그 형식을 입력하세요 (예 : 이미지 : v1)",
 			"export_3": "파일 이름",
-			"export_4": "Filename을 입력하세요",
+			"export_4": "파일 이름을 입력하세요",
 			"build_1": "경로",
 			"build_2": "Docker 파일을 입력하거나 선택하세요",
 			"build_3": "꼬리표",
@@ -551,7 +551,7 @@
 			"index_40": "일반적인 창조",
 			"index_41": "템플릿을 사용하세요",
 			"index_42": "이름을 구성하세요",
-			"index_43": "Compose Name을 입력하세요",
+			"index_43": "Compose 이름을 입력하세요",
 			"index_44": "내용을 구성하세요",
 			"index_45": ".env 컨텐츠",
 			"index_46": "또한 템플릿으로 저장하세요",
@@ -582,9 +582,9 @@
 				"index_6": "템플릿 이름을 입력하세요",
 				"index_7": "Yaml 템플릿을 추가하세요"
 			},
-			"taskLogsTitle": "Creating Docker Compose...",
-			"taskSuccess": "Project added successfully",
-			"taskFailed": "Failed to add project"
+			"taskLogsTitle": "Docker Compose 생성 중...",
+			"taskSuccess": "프로젝트가 성공적으로 추가되었습니다",
+			"taskFailed": "프로젝트 추가에 실패했습니다"
 		},
 		"Template": {
 			"index_4": "템플릿 이름",
@@ -606,13 +606,13 @@
 				"index_3": "주목",
 				"index_4": "콘텐츠",
 				"index_5": "이미지 경로를 입력하세요",
-				"index_6": "Subdir 포함",
+				"index_6": "하위 디렉터리 포함",
 				"index_8": "추가 해야하는 작곡을 확인하세요 [확인 : {0}]",
 				"index_9": "템플릿을 작성하세요",
 				"index_10": "경로",
 				"index_11": "경로를 선택하세요",
 				"index_12": "템플릿을 선택하세요",
-				"index_13": "Compose Template를 추가하세요",
+				"index_13": "Compose 템플릿을 추가하세요",
 				"index_14": "로컬 템플릿을 검색하세요"
 			}
 		},
@@ -677,7 +677,7 @@
 				"index_2": "볼륨 이름을 입력하세요",
 				"index_3": "옵션",
 				"index_4": "꼬리표",
-				"index_5": "부피 태그, 한 줄 당 하나씩, 예 : key = 값",
+				"index_5": "부피 태그, 한 줄 당 하나씩, 예 : 키 = 값",
 				"index_6": "주목"
 			}
 		},
@@ -802,7 +802,7 @@
 				"modifyButton": "수정",
 				"disabledTip": "애플리케이션이 이미 존재하므로 수정할 수 없습니다.",
 				"validationError": "올바른 디렉터리 경로를 입력하세요!",
-				"confirmTitle": "App Store 디렉토리 수정",
+				"confirmTitle": "앱 스토어 디렉터리 수정",
 				"confirmContent": "앱 스토어 디렉터리를 수정하면 패널이 다시 시작됩니다. 계속하시겠습니까?"
 			},
 			"systemInfo": {
@@ -876,7 +876,7 @@
 			"index_40": "Docker를 다시 시작, 잠깐만 ...",
 			"index_41": "가속 소스 제거, 기다려주세요 ...",
 			"index_42": "가속도 URL 설정, 기다려주세요 ...",
-			"index_43": "Compose Path를 설정하고 기다려주세요 ...",
+			"index_43": "Compose 경로를 설정하고 기다려주세요 ...",
 			"index_44": "네트워크 삭제, 기다려주세요 ...",
 			"index_45": "볼륨 삭제, 기다려주세요 ...",
 			"index_46": "저장소 삭제, 기다려주세요 ...",

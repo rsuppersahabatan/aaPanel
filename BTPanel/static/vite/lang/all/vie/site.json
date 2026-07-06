@@ -1227,7 +1227,7 @@
 	"a885b47c943b39673b0253d2baa7b512": "Vui lòng chọn chi nhánh",
 	"2905090ede4a4f1d82debcb292b856db": "Vui lòng nhập địa chỉ kho lưu trữ trước",
 	"2b456e8e4127051e591e630c17843128": "Trước tiên hãy giải quyết bản ghi A của miền này thành địa chỉ IP của máy chủ",
-	"71c0c92402637207726d0b177769c881": "ví dụ: git@github.com:tên người dùng/repo.git",
+	"71c0c92402637207726d0b177769c881": "ví dụ: git{'@'}github.com:tên người dùng/repo.git",
 	"e3e29dfa71f0ff47e1f1b10cc091accb": "ví dụ: bậc thầy",
 	"6a5b96493d2dcad93879e7e0ca90c943": "Làm cách nào để tạo trang web bằng Git?",
 	"4351cfebe4b61d8aa5efa1d020710005": "Xem",

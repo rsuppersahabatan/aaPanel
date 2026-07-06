@@ -693,7 +693,7 @@
 			"config_22": "사이트가 CDN을 사용하는 경우 켜진 후 클라이언트 IP를 올바르게 얻을 수 있습니다. 요청 헤더의 마지막 IP 주소를 기본적으로 클라이언트 IP로 가져옵니다.",
 			"config_23": "첫 번째 IP를 얻으십시오",
 			"config_24": "CDN을 켜면 첫 번째 요청 헤더 또는 실제 IP부터 시작합니다.",
-			"config_25": "Block Php Exec",
+			"config_25": "PHP 실행 차단",
 			"config_26": "지정된 URL에서 PHP 스크립트 실행을 금지하세요",
 			"config_27": "금지 된 URL",
 			"config_28": "지정된 URL에 대한 액세스를 금지합니다",
@@ -718,7 +718,7 @@
 			"config_47": "URL CC 방어를 수정하세요",
 			"config_48": "빈도",
 			"config_49": "주기",
-			"config_50": "{0} sec",
+			"config_50": "{0}초",
 			"config_51": "* 매개 변수가없는 URL",
 			"config_52": "타임스)",
 			"config_53": "비서",
@@ -876,7 +876,9 @@
 			"config_205": "온라인 편집 [{0}]",
 			"config_206": "규칙 편집 [{0}]",
 			"config_207": "쿠키를 사용하여 침투 공격을 걸러냅니다",
-			"config_208": "일반적인 스캔 테스트 도구에 대한 필터 침투 테스트"
+			"config_208": "일반적인 스캔 테스트 도구에 대한 필터 침투 테스트",
+			"config_209": "읽기 전용 모드",
+			"config_210": "읽기 전용 모드입니다. 공격 및 방어 훈련 외에는 활성화하지 마십시오. 로그인, 결제, 검색, 가입, 댓글 및 기타 기능이 영향을 받을 수 있습니다."
 		},
 		"Install": {
 			"index_1": "팁 :이 페이지는 패널 설정에서 꺼질 수 있습니다.",
@@ -888,6 +890,65 @@
 			"index_7": "해커를 중지하세요",
 			"index_8": "지금 설치하세요",
 			"index_9": "지금 구매하세요"
+		},
+		"ProtectionScreen": {
+			"defaultTitle": "aaPanel WAF 대시보드",
+			"setting": {
+				"title": "대시보드 설정",
+				"monitorTitle": "모니터 제목",
+				"monitorTitlePlaceholder": "모니터 제목 입력",
+				"serverCoords": "서버 좌표",
+				"longitude": "경도",
+				"longitudePlaceholder": "경도 입력, 예: 116.395645",
+				"latitude": "위도",
+				"latitudePlaceholder": "위도 입력, 예: 39.929986",
+				"currentCoords": "좌표",
+				"locationTip": "위치는 참고용이며 정확하지 않을 수 있습니다.",
+				"titleRequired": "모니터 제목을 입력하세요",
+				"saveFailed": "저장 실패",
+				"invalidCoords": "올바른 경도와 위도를 입력하세요",
+				"saveSuccess": "저장되었습니다"
+			},
+			"stats": {
+				"todayRequests": "오늘 요청",
+				"maliciousRequests": "악성 요청",
+				"totalIntercepts": "총 차단",
+				"todayIntercepts": "오늘 차단"
+			},
+			"actions": {
+				"countdownRefresh": "카운트다운 새로고침",
+				"countdown": "카운트다운",
+				"fullscreen": "전체 화면",
+				"setting": "설정"
+			},
+			"realtime": {
+				"title": "실시간 웹 방어",
+				"empty": "실시간 보호 데이터 없음"
+			},
+			"attackDetail": {
+				"attackIp": "공격 IP",
+				"attackType": "유형: ",
+				"domain": "도메인: ",
+				"time": "시간: ",
+				"empty": "공격 상세 정보 없음"
+			},
+			"chart": {
+				"realtimeQps": "실시간 QPS",
+				"time": "시간",
+				"qps": "QPS",
+				"sevenDayTrend": "7일 차단",
+				"attackTime": "공격 시간",
+				"attackCount": "공격 횟수",
+				"interceptTypeToday": "차단 유형",
+				"pieValue": "{0}회, {1}%",
+				"noInterceptDataToday": "오늘 차단 데이터 없음"
+			},
+			"map": {
+				"country": "국가",
+				"count": "횟수",
+				"ipTotal": "총 IP",
+				"unknown": "알 수 없음"
+			}
 		},
 		"Api": {
 			"overview_1": "한 번의 클릭 활성화가 진행 중입니다. 기다려주세요 ...",
@@ -972,22 +1033,22 @@
 			"setting_76": "금지 된 단어를 가져 오면 기다려주세요 ...",
 			"setting_77": "금지 된 단어 삭제, 기다려주세요 ...",
 			"setting_78": "금지 된 단어를 지우는 것은 기다려주세요 ...",
-			"exclusive_79": "Setting rule status, please wait...",
-			"exclusive_80": "Setting status, please wait..."
+			"exclusive_79": "규칙 상태를 설정하는 중입니다. 잠시만 기다려 주세요...",
+			"exclusive_80": "상태를 설정하는 중입니다. 잠시만 기다려 주세요..."
 		},
 		"Exclusive": {
-			"index_1": "Exclusive Rules",
-			"index_2": "Exclusive rules are disabled",
-			"index_3": ". Enable them to enhance protection for WordPress, DedeCMS, and other applications.",
-			"index_4": "Enable now",
-			"index_5": "Rule ID",
-			"index_6": "Name",
-			"index_7": "Description",
-			"index_8": "Status",
-			"index_9": "After enabling exclusive rules, they will apply to all websites. If false positives occur, you can disable individual rules.",
-			"index_10": "Exclusive rules are adapted for major CMSs based on each program's characteristics. Most of them target remote code execution.",
-			"index_11": "Rule updates: at this stage, updating the firewall also updates the rules. Manual rule updates will be added later.",
-			"index_12": "Future update plan: targeted updates based on various CVE vulnerabilities."
+			"index_1": "전용 규칙",
+			"index_2": "전용 규칙이 비활성화되어 있습니다",
+			"index_3": "WordPress, DedeCMS 등 애플리케이션 보호를 강화하려면 활성화하세요.",
+			"index_4": "지금 활성화",
+			"index_5": "규칙 ID",
+			"index_6": "이름",
+			"index_7": "설명",
+			"index_8": "상태",
+			"index_9": "전용 규칙을 활성화하면 모든 웹사이트에 적용됩니다. 오탐이 발생하면 개별 규칙을 비활성화할 수 있습니다.",
+			"index_10": "전용 규칙은 각 프로그램의 특성에 맞춰 주요 CMS에 최적화되어 있습니다. 대부분 원격 코드 실행을 대상으로 합니다.",
+			"index_11": "규칙 업데이트: 현재는 방화벽을 업데이트하면 규칙도 함께 업데이트됩니다. 수동 규칙 업데이트는 추후 제공됩니다.",
+			"index_12": "향후 업데이트 계획: 다양한 CVE 취약점에 기반한 대상 업데이트를 제공합니다."
 		}
 	}
 }

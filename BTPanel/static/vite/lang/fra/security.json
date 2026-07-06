@@ -465,6 +465,99 @@
 			"Index_5": "Veuillez sélectionner l'utilisateur",
 			"Index_6": "Êtes-vous sûr de supprimer cet utilisateur?"
 		},
+		"ServerSafe": {
+		  "title": "Sécurité du serveur",
+		  "sshProtectionConfiguration": "Configuration de la protection SSH",
+		  "sshProtectionLog": "Journal de protection SSH",
+		  "securityConfiguration": "Configuration de la sécurité",
+		  "totalBannedIp": "Nombre total d'IP interdites",
+		  "totalFailedConnection": "Nombre total d'échecs de connexion",
+		  "currentBannedIp": "IP actuellement interdite",
+		  "currentFailedConnection": "La connexion actuelle a échoué",
+		  "statusCodeAccessDenied": "403 - Access Denied",
+		  "statusCodePageNotFound": "404 - Page Not Found",
+		  "statusCodeInvalidRequest": "416 - Invalid Request",
+		  "statusCodeClientTimeout": "408 - Client Timeout",
+		  "statusCodeClientRequestError": "400 - Client Request Error",
+		  "statusCodeUnauthorizedAccess": "401 - Unauthorized Access",
+		  "sshKeyLogin": "Connexion clé SSH",
+		  "enableSshKeyBeforeView": "Veuillez d'abord activer la connexion de la clé SSH, puis vérifier la clé",
+		  "enableSshKeyBeforeDownload": "Veuillez d'abord activer la connexion de la clé SSH, puis télécharger la clé.",
+		  "gettingKeyInfo": "Obtenir des informations clés, veuillez patienter ...",
+		  "loading": "Chargement, veuillez attendre ...",
+		  "lastFiveLoginRecords": "5 derniers enregistrements de connexion",
+		  "viewMore": "Voir plus",
+		  "ip": "IP",
+		  "loginTime": "Temps de connexion",
+		  "port": "Port",
+		  "success": "Succès",
+		  "failure": "Échec",
+		  "browser": "Navigateur",
+		  "blockIpConfirm": "Après avoir bloqué cette IP, cette IP ne sera plus autorisée à accéder au serveur, continuer?",
+		  "unblockIpConfirm": "Après avoir débloqué cette IP, l'accès au serveur à partir de cette IP sera restauré, continuez?",
+		  "manualBlockBrief": "Page de journal de connexion SSH Cliquez sur le blocage du manuel IP",
+		  "safetyRating": "Niveau de sécurité",
+		  "sshPortChange": "Changement de port SSH",
+		  "recommendedNon22Port": "Recommandé: utiliser un port non 22",
+		  "modifyDefaultSshPort": "Modifier le port SSH par défaut pour éviter les analyses malveillantes",
+		  "important": "important",
+		  "apply": "Appliquer",
+		  "passwordComplexity": "Complexité du mot de passe",
+		  "recommendedComplexityLevel": "Recommandé: utilisez un niveau supérieur à 3",
+		  "passwordComplexityDesc": "Activez la vérification de la complexité du mot de passe et le niveau de complexité actuel contiendra des caractères de type chiffre, majuscule, minuscule et caractère spécial {a}.",
+		  "complexityLevel": "Niveau de complexité",
+		  "passwordLengthLimit": "Limite de longueur du mot de passe",
+		  "recommendedPasswordLength": "Recommandation: utilisez un mot de passe de 9 à 20 caractères",
+		  "setMinimumPasswordLength": "Définir les exigences minimales de longueur de mot de passe",
+		  "minimumLength": "Longueur minimale",
+		  "sshLoginAlert": "SSH login alertes",
+		  "recommendedSshLoginAlerts": "Recommandation: activer les alertes de connexion SSH",
+		  "sendSshLoginAlerts": "Envoi de notifications d'alerte lors de la connexion SSH",
+		  "configured": "Configuré",
+		  "configureAlert": "Configuration des alarmes",
+		  "sshBruteForceProtection": "SSH protection contre la violence",
+		  "recommendedSshBruteForceProtection": "Recommandé: activer la protection contre la violence SSH",
+		  "sshBruteForceDesc": "Activer le déploiement en arrière - plan pour empêcher les attaques par force brute",
+		  "panelLoginAlert": "Alertes de connexion du panneau",
+		  "recommendedPanelLoginAlerts": "Recommandation: activer les alertes de connexion du panneau",
+		  "sendPanelLoginAlerts": "Envoyer une notification d'alerte lorsque le panneau se connecte",
+		  "panelGoogleAuthenticatorLogin": "Panneau Google authenticator connexion",
+		  "recommendedGoogleAuthenticatorLogin": "Recommandé: activer la connexion à Google authenticator",
+		  "googleAuthenticatorDesc": "Activer la connexion à Google authenticator pour améliorer la sécurité",
+		  "notLoggedInStatusCode": "Code d'état de réponse non connecté",
+		  "recommendedStatusCode404": "Recommandation: définir 404 comme Code de réponse",
+		  "notLoggedInStatusCodeDesc": "État des entrées de sécurité incorrectement retournées",
+		  "panelSsl": "Panneau SSL",
+		  "recommendedPanelHttps": "Recommandation: activer le panneau HTTPS",
+		  "panelHttpsDesc": "Activer l'accès HTTPS (le panneau redémarrera après la configuration)",
+		  "rootPasswordLoginSettings": "Root mot de passe paramètres de connexion",
+		  "recommendedOnlyKeyLogin": "Recommandation: se connecter uniquement avec une clé",
+		  "recommendedOnlyAllowKeyLogin": "Il est recommandé d'autoriser uniquement la connexion par clé",
+		  "onlyKeyLogin": "Login clé uniquement",
+		  "onlyCommandExecution": "Exécution de commande uniquement",
+		  "passwordAndKeyLogin": "Mot de passe et clé login + clé",
+		  "prohibitedLogin": "Interdiction de se connecter",
+		  "rootKeySettings": "Paramètres de la clé racine",
+		  "rootKeyDesc": "Activer la touche aapanel, afficher et télécharger",
+		  "viewKey": "Voir la clé",
+		  "downloadKey": "Télécharger la clé",
+		  "maximumRetryTimes": "Nombre maximal de tentatives",
+		  "period": "Période",
+		  "prohibitionTime": "Prohibition time",
+		  "sshProtectionConfigDesc": "Surveiller les journaux de service sshd et interdire l'accès IP pendant 86400 secondes si l'adresse IP dépasse le nombre maximal de tentatives (5) pendant une période définie (300 secondes)",
+		  "sshLoginSuccessful": "Connexion SSH réussie",
+		  "sshLoginFailed": "La connexion SSH a échoué",
+		  "days": "Jours",
+		  "lastLoginInformation": "Dernières informations de connexion",
+		  "time": "Temps",
+		  "sshLogin": "Connexion SSH",
+		  "panelLogin": "Connexion au panel",
+		  "sshProtection": "Protection SSH",
+		  "sshProtectionNotInstalled": "La fonction de protection SSH n'est pas installée",
+		  "sshProtectionInstallDesc": "Après l'installation de la fonction de protection SSH, vous pouvez empêcher efficacement les tentatives de connexion malveillantes",
+		  "required": "Ne peut pas être vide",
+		  "googleAuthBinding": "Liaison d'authentification Google"
+		},
 		"SiteSecurity": {
 			"Header": {
 				"scanning": "Scanning",
@@ -542,6 +635,113 @@
 						"title": "Professional analysis of website access logs",
 						"desc": "Discover anomalies and security risks through log analysis"
 					}
+				}
+			}
+		},
+		"NetworkScan": {
+			"Tabs": {
+				"overview": "Overview",
+				"blocked": "Blocked Records",
+				"operationLog": "Operation Log",
+				"realtimeLog": "Real-time Log"
+			},
+			"Conversion": {
+				"title": "Scan Detection - Features",
+				"feature1": "Identify malicious scan IPs 24/7",
+				"feature2": "Quickly detect and block abnormal traffic",
+				"buttonSetup": "Install Now",
+				"buttonRenew": "Buy Now"
+			},
+			"Overview": {
+				"title": "Scan Overview",
+				"todayScanCount": "Today's Scan Count",
+				"todayIpCount": "Today's IP Count",
+				"totalScanCount": "Total Scan Count",
+				"scanSwitch": "Scan Detection",
+				"refresh": "Refresh",
+				"export": "Export",
+				"advancedConfig": "Advanced Config",
+				"durationText": "{minutes}m {seconds}s",
+				"durationOverflow": "999+h",
+				"columns": {
+					"scanIp": "Scan IP",
+					"scanType": "Scan Type",
+					"todayScanCount": "Today's Scans",
+					"totalScanCount": "Total Scans",
+					"scannedPorts": "Scanned Ports",
+					"scanStartTime": "Scan Start Time",
+					"scanDuration": "Scan Duration"
+				},
+				"actions": {
+					"details": "Details",
+					"block": "Block"
+				},
+				"dialogs": {
+					"scanDetail": "{ip} Scan Details",
+					"blockTitle": "Block IP",
+					"blockContent": "Block {ip} for 24 hours?",
+					"exportTitle": "Export IP List",
+					"exportContent": "Export the current scan IP list?",
+					"batchBlockTitle": "Batch Block",
+					"batchBlockDesc": "Batch block selected IPs?",
+					"advancedConfigTitle": "Advanced Config"
+				}
+			},
+			"Blocked": {
+				"columns": {
+					"ip": "IP",
+					"source": "Source",
+					"reason": "Reason"
+				},
+				"actions": {
+					"unlock": "Unblock",
+					"unlockTitle": "Unblock IP",
+					"unlockContent": "Allow {ip} to access after unblocking?",
+					"batchUnlockTitle": "Batch Unblock",
+					"batchUnlockDesc": "Batch unblock selected IPs?"
+				},
+				"defaults": {
+					"source": "Nginx Firewall",
+					"reason": "IP scan too frequent"
+				}
+			},
+			"OperationLog": {
+				"columns": {
+					"time": "Time",
+					"detail": "Detail"
+				}
+			},
+			"ScanDetail": {
+				"totalScanCount": "Total Scans:",
+				"localNetwork": "Local Network",
+				"columns": {
+					"date": "Date",
+					"scanCount": "Scan Count"
+				}
+			},
+			"DateRange": {
+				"today": "Today",
+				"yesterday": "Yesterday"
+			},
+			"AdvancedConfig": {
+				"tabs": {
+					"rule": "Block Rules",
+					"cleanup": "Data Cleanup"
+				},
+				"form": {
+					"scanTime": "Scan Time",
+					"accessCount": "Access Count",
+					"cleanupDays": "Scan Days",
+					"minuteUnit": "minutes",
+					"countUnit": "times",
+					"cleanupUnit": "days",
+					"cleanupTip": "Scan data is retained for {days} days. Older data will be cleaned automatically.",
+					"save": "Save"
+				},
+				"validation": {
+					"scanTime": "Please enter scan time",
+					"accessCount": "Please enter access count",
+					"cleanupDays": "Please enter max days"
 				}
 			}
 		}

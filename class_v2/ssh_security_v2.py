@@ -616,7 +616,7 @@ class ssh_security:
         cpath = 'data/msg.json'
         try:
             if 'force' in get or not os.path.exists(cpath):
-                public.downloadFile('{}/linux/panel/msg/msg.json'.format("https://node.aapanel.com"), cpath)
+                public.downloadFile('{}/linux/panel/msg/msg.json'.format(public.OfficialDownloadBase()), cpath)
         except:
             pass
 
@@ -649,7 +649,7 @@ class ssh_security:
         cpath = 'data/msg.json'
         try:
             if 'force' in get or not os.path.exists(cpath):
-                public.downloadFile('{}/linux/panel/msg/msg.json'.format("https://node.aapanel.com"), cpath)
+                public.downloadFile('{}/linux/panel/msg/msg.json'.format(public.OfficialDownloadBase()), cpath)
         except:
             pass
 

@@ -37,7 +37,7 @@ class panelSSL:
     __BINDURL = '{}/api/user'.format(public.OfficialApiBase())  # 获取token 获取官网token
     # __BINDURL = 'http://dev.aapanel.com/api/user'  # 获取token 获取官网token
 
-    __CODEURL = 'https://wafapi.aapanel.com/Auth/GetBindCode'  # 获取绑定验证码
+    __CODEURL = f'{public.OfficialWafBase()}/Auth/GetBindCode'  # 获取绑定验证码
     __UPATH = 'data/userInfo.json'
 
     # __APIURL = 'http://dev.aapanel.com/api'

@@ -16,7 +16,7 @@ except:
     public.ExecShell(cmd_h11)
     public.ExecShell(cmd_wsproto)
     from mod.project.node.nodeutil import ServerNode, LocalNode, monitor_node_once_with_timeout
-from mod.project.node.dbutil import Node, ServerNodeDB, ServerMonitorRepo
+from mod.project.node.dbutil import Node, ServerNodeDB, ServerMonitorRepo, NodeMonitorDB
 from mod.project.node.task_flow import flow_useful_version
 
 
@@ -175,6 +175,9 @@ class main():
         search = get.get('search', "").strip()
         category_id = get.get('category_id/d', -1)
         refresh = get.get('refresh/s', "")
+        force_refresh = get.get('force_refresh/s', "")
+        refresh_node_ids = self._parse_id_list(get.get('refresh_node_ids', get.get('node_ids', "")))
+        refresh_timeout = min(max(int(get.get('refresh_timeout/d', 5)), 1), 30)
         show_mode = get.get('show_mode/s', "")
         if not show_mode or show_mode not in ["list", "block"]:
             show_mode = self.default_show_mode()
@@ -191,15 +194,18 @@ class main():
         if err:
             return public.return_message(-1, 0, err)
 
-        if refresh and refresh == "1":
-            th_list = []
-            for node in data:
-                th = threading.Thread(target=monitor_node_once_with_timeout, args=(node,5))
-                th.start()
-                th_list.append(th)
+        if self._is_true(refresh) or self._is_true(force_refresh) or refresh_node_ids:
+            self._refresh_monitor_nodes(srv_db, data, refresh_node_ids, refresh_timeout)
+            data, err = srv_db.get_node_list(search, category_id, (page_num - 1) * limit, limit)
+            if err:
+                return public.return_message(-1, 0, err)
 
-            for th in th_list:
-                th.join()
+        monitor_map = {}
+        try:
+            monitor_map = NodeMonitorDB().get_list_monitor_map([int(node.get("id", 0)) for node in data])
+        except Exception:
+            if public.is_debug():
+                public.print_error()
 
         for node in data:
             if isinstance(node["ssh_conf"], str):
@@ -212,11 +218,62 @@ class main():
                 node["remarks"] = node["remarks"] + " | 1Panel"
             node_data = self.get_node_data(node)
             node['data'] = node_data
+            node['monitor'] = monitor_map.get(int(node.get("id", 0)), {})
         count = srv_db.node_count(search, category_id)
         page = public.get_page(count, page_num, limit)
         page["data"] = data
         page["show_mode"] = show_mode
         return public.return_message(0, 0,page)
+
+    @staticmethod
+    def _is_true(value):
+        return str(value).lower() in ("1", "true", "yes", "on")
+
+    @staticmethod
+    def _parse_id_list(value):
+        if value in ("", None):
+            return []
+        if isinstance(value, int):
+            return [value]
+        if isinstance(value, list):
+            return [int(item) for item in value if str(item).strip().isdigit()]
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                return []
+            try:
+                data = json.loads(value)
+                if isinstance(data, list):
+                    return [int(item) for item in data if str(item).strip().isdigit()]
+                if isinstance(data, int):
+                    return [data]
+            except Exception:
+                pass
+            return [int(item.strip()) for item in value.split(",") if item.strip().isdigit()]
+        return []
+
+    @staticmethod
+    def _refresh_monitor_nodes(srv_db, page_nodes, refresh_node_ids, timeout):
+        if refresh_node_ids:
+            nodes = []
+            for node_id in refresh_node_ids:
+                node = srv_db.get_node_by_id(int(node_id))
+                if node:
+                    nodes.append(node)
+        else:
+            nodes = page_nodes
+        if not nodes:
+            return
+
+        max_workers = 10
+        for idx in range(0, len(nodes), max_workers):
+            th_list = []
+            for node in nodes[idx:idx + max_workers]:
+                th = threading.Thread(target=monitor_node_once_with_timeout, args=(dict(node), timeout))
+                th.start()
+                th_list.append(th)
+            for th in th_list:
+                th.join()
 
     @staticmethod
     def get_node_data(node: dict):

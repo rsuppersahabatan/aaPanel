@@ -7764,7 +7764,7 @@ bt.soft = {
 				offset: '20%',
 				closeBtn: 2,
 				area: '700px',
-				title: '' + title,
+				title: `<img style="width: 24px;margin-right: 5px;margin-left: -10px;margin-top: -3px;" src="/static/img/soft_ico/ico-${name}.png">` + title,
 				content: rhtml.replace('"javascript/text"', '"text/javascript"'),
 			});
 			/*rtmp = rhtml.split('<script type="javascript/text">')

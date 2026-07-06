@@ -112,6 +112,19 @@ class main(projectBase):
             if re_data and all_data[i]['name'] in re_data:
                 all_data[i]['re_total'] = re_data[all_data[i]['name']]['total']['request']
 
+        # 批量获取备份信息
+        site_ids = [item['id'] for item in all_data]
+        if site_ids:
+            backup_info_map = {
+                j['pid']: j for j in
+                public.S('backup').where_in('pid', site_ids).where('type=?', ('0',))
+                .group('pid').field('pid,count(*) as cnt,max(addtime) as last_backup_time').select()
+            }
+            for item in all_data:
+                info = backup_info_map.get(item['id'], {})
+                item['backup_count'] = info.get('cnt', 0)
+                item['last_backup_time'] = info.get('last_backup_time', '')
+
         if re_order:
             is_reverse = True if re_order == 'desc' else False
             all_data = sorted(all_data, key=lambda x: x.get('re_total', 0), reverse=is_reverse)
@@ -707,7 +720,11 @@ export PATH
             return public.return_message(-1,0, return_message)
         
         # 端口占用检测
-        if self.check_port_is_used(get.get('port/port')): 
+        if get.get('port') == '443':
+            return_message = public.return_error(public.lang('Do not use system ports 443.'))
+            del return_message['status']
+            return public.return_message(-1, 0, return_message)
+        if self.check_port_is_used(get.get('port/port')):
             return_message=public.return_error('This port is already occupied, please modify your project port, port: {}'.format(get.port))
             del return_message['status']
             return public.return_message(-1,0, return_message)
@@ -725,6 +742,11 @@ export PATH
                 return_message=public.return_error('Domain name already exists: {}'.format(domain))
                 del return_message['status']
                 return public.return_message(-1,0, return_message)
+            elif domain_arr[1] == '443':
+                return_message = public.return_error(public.lang('Do not use system ports 443'))
+                del return_message['status']
+                return public.return_message(-1,0, return_message)
+
         pdata = {
             'name': get.project_name,
             'path': get.project_cwd,
@@ -739,7 +761,7 @@ export PATH
                     'project_script': get.project_script,
                     'bind_extranet': int(get.bind_extranet),
                     'domains': [],
-                    'is_power_on': 0,
+                    'is_power_on': int(get.get('is_power_on',0)),
                     'run_user': get.run_user,
                     'max_memory_limit': get.max_memory_limit,
                     'nodejs_version': get.nodejs_version,
@@ -1060,6 +1082,10 @@ export PATH
             if len(domain_arr) == 1: 
                 domain_arr.append(80)
                 domain += ':80'
+            else:
+                if domain_arr[1] == '443':
+                    error_list.append(domain)
+                    continue
             if not public.M('domain').where('name=?',(domain_arr[0],)).count():
                 public.M('domain').add('name,pid,port,addtime',(domain_arr[0],project_id,domain_arr[1],public.getDate()))
                 if not domain in project_find['project_config']['domains']:
@@ -1115,7 +1141,8 @@ export PATH
             
         project_id = public.M('sites').where('name=?',(get.project_name,)).getField('id')
         if project_find['project_config']['bind_extranet']:
-            if len(project_find['project_config']['domains']) == 1: 
+            domain_count = public.M('domain').where('pid=?', (project_id,)).count()
+            if domain_count <= 1:
                 return_message=public.return_error(public.lang('At least one domain name is required for the mapped project'))
                 del return_message['status']
                 return public.return_message(-1,0, return_message)
@@ -1886,13 +1913,15 @@ export PATH
             return public.return_message(-1,0, return_message)
 
         last_env = self.get_last_env(nodejs_version,project_find['path'])
-        
+        project_port = project_find['project_config'].get('port', '')
+        port_export = 'export PORT="{}"\n'.format(project_port) if project_port else ''
+
         # 生成启动脚本
         if os.path.exists(project_script):
             start_cmd = '''{last_env}
 export NODE_PROJECT_NAME="{project_name}"
-cd {project_cwd}
-nohup {node_bin} {project_script} >> {log_file} 2>&1 & 
+{port_export}cd {project_cwd}
+nohup {node_bin} {project_script} >> {log_file} 2>&1 &
 echo $! > {pid_file}
 '''.format(
     project_cwd = project_find['path'],
@@ -1901,12 +1930,13 @@ echo $! > {pid_file}
     log_file = log_file,
     pid_file = pid_file,
     last_env = last_env,
-    project_name = get.project_name
+    project_name = get.project_name,
+    port_export = port_export
 )
         elif project_script in scripts_keys:
             start_cmd = '''{last_env}
 export NODE_PROJECT_NAME="{project_name}"
-cd {project_cwd}
+{port_export}cd {project_cwd}
 nohup {npm_bin} run {project_script} >> {log_file} 2>&1 &
 echo $! > {pid_file}
 '''.format(
@@ -1916,12 +1946,13 @@ echo $! > {pid_file}
     pid_file = pid_file,
     log_file = log_file,
     last_env = last_env,
-    project_name = get.project_name
+    project_name = get.project_name,
+    port_export = port_export
 )
         else:
             start_cmd = '''{last_env}
 export NODE_PROJECT_NAME="{project_name}"
-cd {project_cwd}
+{port_export}cd {project_cwd}
 nohup {project_script} >> {log_file} 2>&1 &
 echo $! > {pid_file}
 '''.format(
@@ -1930,8 +1961,8 @@ echo $! > {pid_file}
     pid_file = pid_file,
     log_file = log_file,
     last_env = last_env,
-    project_name = get.project_name
-
+    project_name = get.project_name,
+    port_export = port_export
 )
 
         script_file = "{}/{}.sh".format(self._node_run_scripts,get.project_name)

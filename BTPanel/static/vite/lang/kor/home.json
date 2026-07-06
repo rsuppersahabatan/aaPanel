@@ -42,7 +42,7 @@
 		"index_39": "출시된",
 		"index_40": "지우기",
 		"index_41": "메모리 정보",
-		"index_42": "사용된:",
+		"index_42": "사용중:",
 		"index_43": "총:",
 		"index_44": "사용 가능:",
 		"index_45": "버프/캐시 :",
@@ -59,7 +59,7 @@
 		"index_55": "마운트 포인트",
 		"index_56": "사용 가능",
 		"index_57": "총",
-		"index_58": "사용된",
+		"index_58": "사용중",
 		"index_59": "운영체제",
 		"index_60": "Inode 정보",
 		"index_61": "파일 시스템",
@@ -297,6 +297,201 @@
 			"index_99": "스캔 대기 중",
 			"ScanRules": "스캔 규칙",
 			"DefaultRuleTag": "[기본]"
+		},
+		"SiteGuide": {
+			"common": {
+				"back": "뒤로",
+				"cancel": "취소",
+				"close": "닫기",
+				"closeCurrent": "현재 닫기",
+				"backHome": "홈으로 돌아가기",
+				"closeGuide": "마법사 닫기",
+				"hide": "숨기기",
+				"restore": "복원",
+				"confirmTitle": "알림",
+				"confirmContent": "숨긴 후 aaPanel을 보고 다른 작업을 수행할 수 있습니다. 현재 생성 작업을 반복하지 마십시오. 그렇지 않으면 충돌이 발생할 수 있습니다."
+			},
+			"layout": {
+				"title": "aaPanel 설정 마법사"
+			},
+			"message": {
+				"softwareInstallEntryUnavailable": "소프트웨어 설치 항목을 사용할 수 없습니다",
+				"projectPathUnavailable": "프로젝트 경로를 사용할 수 없습니다"
+			},
+			"welcome": {
+				"title": "aaPanel에 오신 것을 환영합니다",
+				"description": "몇 분 안에 첫 번째 프로젝트를 설정해 보세요.",
+				"softwarePage": "소프트웨어 페이지",
+				"lastConfig": "Last config: ",
+				"skipWizard": "마법사 건너뛰기",
+				"options": {
+					"wordpress": {
+						"title": "WordPress 사이트 만들기",
+						"description": "최적화된 WordPress 코어를 자동 데이터베이스 매핑과 함께 배포합니다."
+					},
+					"php": {
+						"title": "PHP 사이트 만들기",
+						"description": "표준 PHP 런타임을 구성하고 MySQL/MariaDB 자격 증명을 자동 설정합니다."
+					},
+					"node": {
+						"title": "Node.js 프로젝트 만들기",
+						"description": "몇 분 안에 Express, Next 또는 NestJS 환경을 구동합니다."
+					},
+					"proxy": {
+						"title": "리버스 프록시 만들기",
+						"description": "내부 포트를 외부 도메인으로 라우팅하고 프록시 캐싱을 구성합니다."
+					}
+				}
+			},
+			"form": {
+				"wordpress": {
+					"title": "WordPress 사이트 구성",
+					"description": "매개변수를 지정하여 원클릭 코어 설치로 WordPress를 배포합니다.",
+					"submit": "WordPress 사이트 만들기"
+				},
+				"proxy": {
+					"title": "리버스 프록시 배포",
+					"description": "내부 포트 또는 원격 서버를 공개 가상 호스트 도메인에 매핑합니다.",
+					"submit": "리버스 프록시 배포"
+				},
+				"php": {
+					"title": "PHP 사이트 배포",
+					"description": "로컬 공개 디렉토리 폴더를 매핑하고 대상 PHP 엔진 런타임을 선택합니다.",
+					"submit": "PHP 사이트 만들기"
+				},
+				"node": {
+					"title": "Node.js 프로젝트 시작",
+					"description": "표준 폴더 디렉토리 구조를 초기화하고, 스크립트를 실행하며, 포트 경로를 구성합니다.",
+					"submit": "Node.js 프로젝트 시작"
+				}
+			},
+			"fields": {
+				"domainName": "도메인 이름",
+				"domainTip": "도메인 이름이 없으면 서버 IP를 대신 사용할 수 있습니다.",
+				"autoEnableSsl": "Let's Encrypt SSL 자동 활성화",
+				"wordpressDomainPlaceholder": "웹사이트 도메인을 입력하세요 (예: domain.com)",
+				"websiteTitle": "웹사이트 제목",
+				"websiteTitlePlaceholder": "웹사이트 제목을 입력하세요",
+				"language": "언어",
+				"adminEmail": "관리자 이메일",
+				"phpDomainPlaceholder": "웹사이트 도메인을 입력하세요 (예: phpsite.com)",
+				"phpEngine": "PHP 엔진",
+				"phpEngineHint": "누락된 버전은 자동으로 설치됩니다",
+				"installMysql": "MySQL/MariaDB 설치 및 구성",
+				"databaseEngine": "데이터베이스 엔진",
+				"username": "사용자 이름",
+				"password": "비밀번호",
+				"projectName": "프로젝트 이름",
+				"projectNamePlaceholder": "영문자와 숫자만 가능",
+				"runtimeVersion": "런타임 버전",
+				"nodeRecommendedVersion": "Node.js 24.15.0 (Recommended)",
+				"packageManager": "패키지 관리자",
+				"frameworkTemplate": "프레임워크 템플릿",
+				"mappingDomain": "매핑 도메인",
+				"nodeDomainPlaceholder": "node.example.com",
+				"localPort": "로컬 포트",
+				"publicDomain": "공개 도메인",
+				"proxyDomainPlaceholder": "Enter public domain (e.g., app.yourdomain.com)",
+				"targetDestination": "대상 주소",
+				"targetHostPlaceholder": "Target IP or domain (e.g., 127.0.0.1)",
+				"httpHostHeader": "HTTP 호스트 헤더",
+				"proxyCache": "프록시 캐시",
+				"enableProxyCaching": "프록시 캐싱 활성화"
+			},
+			"validation": {
+				"domainRequired": "도메인은 비워둘 수 없습니다",
+				"domainInvalid": "유효한 도메인을 입력하세요",
+				"websiteTitleRequired": "웹사이트 제목은 비워둘 수 없습니다",
+				"languageRequired": "언어를 선택하세요",
+				"emailRequired": "이메일은 비워둘 수 없습니다",
+				"emailInvalid": "유효한 이메일을 입력하세요",
+				"phpVersionRequired": "하나 이상의 PHP 버전을 선택하세요",
+				"mysqlVersionRequired": "MySQL 버전을 선택하세요",
+				"databaseUserRequired": "데이터베이스 사용자는 비워둘 수 없습니다",
+				"databasePasswordRequired": "데이터베이스 비밀번호는 비워둘 수 없습니다",
+				"projectNameInvalid": "프로젝트 이름은 영문자와 숫자만 포함할 수 있습니다",
+				"nodeVersionRequired": "Node.js 버전을 선택하세요",
+				"frameworkRequired": "프레임워크를 선택하세요",
+				"packageManagerRequired": "패키지 관리자를 선택하세요",
+				"portInvalid": "유효한 포트를 입력하세요",
+				"portFrameworkMismatch": "포트가 선택한 프레임워크와 일치하지 않습니다",
+				"protocolRequired": "프로토콜을 선택하세요",
+				"targetHostRequired": "대상 호스트는 비워둘 수 없습니다"
+			},
+			"progress": {
+				"processing": "처리 중",
+				"finalizingDeployment": "배포 마무리 중",
+				"keepPanelOpen": "패널을 계속 열어 두세요. 최종 웹사이트 상태를 적용 중입니다.",
+				"systemCompilerEngine": "진행률",
+				"percentCompleted": "{0}% Completed",
+				"deploymentFailed": "배포 실패",
+				"deploySuccess": "배포 성공",
+				"projectTitles": {
+					"wordpress": "WordPress",
+					"php": "PHP",
+					"nodeFramework": "Node.js",
+					"proxy": "리버스 프록시"
+				}
+			},
+			"success": {
+				"title": "성공! 웹사이트가 공식적으로 라이브 상태입니다.",
+				"description": "모든 구성이 기록되었고 시스템 프로세스가 다시 로드되었습니다.",
+				"configurationParameters": "구성 매개변수",
+				"active": "실행 중",
+				"copyPassword": "비밀번호 복사",
+				"nodeRuntime": "Node.js 런타임",
+				"localPortValue": "Port {0}",
+				"enabled": "활성화됨",
+				"disabled": "비활성화됨",
+				"publicDomainConnection": "공개 도메인 연결",
+				"administratorUsername": "관리자 사용자 이름",
+				"adminAccessPassword": "관리자 액세스 비밀번호",
+				"databaseConfigs": "데이터베이스 구성",
+				"status": "상태",
+				"created": "생성됨",
+				"unknown": "알 수 없음",
+				"db": "DB",
+				"usr": "사용자",
+				"pass": "비밀번호",
+				"mappingProxyHost": "매핑 프록시 호스트",
+				"targetDestinationLink": "대상 주소 링크",
+				"proxyStaticCache": "프록시 정적 캐시",
+				"connectionUrl": "연결 URL",
+				"phpSocketVersion": "PHP 소켓 버전",
+				"databaseEngineConfigs": "{0} configs",
+				"accessUrl": "액세스 URL",
+				"projectDirectory": "프로젝트 디렉토리",
+				"engineRuntime": "엔진 런타임",
+				"templateAndScript": "템플릿 및 스크립트",
+				"localPort": "로컬 포트",
+				"oneClickLogin": "원클릭 로그인",
+				"openWebsite": "웹사이트 열기",
+				"quickUploadDirectory": "빠른 업로드 디렉토리",
+				"openApplication": "애플리케이션 열기",
+				"browseFolderPath": "폴더 경로 찾아보기",
+				"tips": {
+					"wordpressPrefix": "WordPress configuration, security settings, files, and full lifecycle management are available in [",
+					"wordpressSuffix": "]에서 관리할 수 있습니다.",
+					"phpPrefix": "팁: 고급 구성, 보안 설정 및 파일 관리는 ",
+					"phpSuffix": "에서 관리할 수 있습니다.",
+					"proxyPrefix": "팁: 고급 구성 및 보안 설정은 ",
+					"proxySuffix": "에서 관리할 수 있습니다.",
+					"nodePrefix": "Tip: Advanced configuration, security settings, and file management are available in [",
+					"nodeSuffix": "에서 관리할 수 있습니다.",
+					"tipLabel": "팁:",
+					"default": "고급 구성, 보안 방화벽, 디렉토리 파일 및 전체 수명 주기 관리는 나중에 전용 웹사이트 프로젝트 대시보드에서 세부 조정할 수 있습니다.",
+					"wordpressButton": "WP-Toolkit",
+					"phpButton": "웹사이트 - PHP 프로젝트",
+					"proxyButton": "웹사이트 - 프록시 프로젝트",
+					"nodeButton": "웹사이트 - Node.js 프로젝트"
+				},
+				"publicDomain": "Public domain"
+			}
+		},
+		"SetupTabs": {
+			"softwareInstall": "Software install",
+			"projectCreate": "Project creation",
+			"newBadge": "New!!!"
 		}
 	}
 }

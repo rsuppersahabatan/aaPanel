@@ -2159,7 +2159,7 @@ class panelPlugin:
     def getCloudPlugin(self,get):
         if session.get('getCloudPlugin') and get != None: return public.return_msg_gettext(True,'Your plugin list is already the latest version {}!',("-1",))
         import json
-        if not session.get('download_url'): session['download_url'] = 'http://node.aapanel.com'
+        if not session.get('download_url'): session['download_url'] = public.OfficialDownloadBase()
 
         #获取列表
         try:

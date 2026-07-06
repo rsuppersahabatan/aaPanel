@@ -7,11 +7,15 @@
 # | Author: hwliang <hwl@aapanel.com>
 # +-------------------------------------------------------------------
 from flask import session,request
-import public,os,json,time,apache,psutil
+import public,os,json,time,apache,psutil,hashlib,re
 from public.validate import Param
 
 class ajax:
-    __official_url = 'https://www.aapanel.com'
+    # __official_url = public.OfficialApiBase()
+    
+    @property
+    def __official_url(self):
+        return public.OfficialApiBase()
 
     def GetApacheStatus(self, get):
         a = apache.apache()
@@ -734,7 +738,7 @@ class ajax:
         LOG_TYPE_MAP = {
             'beta': '/api/panel/getBetaVersionLogs',
             'official': '/api/panel/getOfficialVersionLogs',
-            'pro': None  # pro 版暂不支持
+            'pro': '/api/panel/getProVersionLogs'
         }
 
         # 确定当前面板类型
@@ -1063,6 +1067,7 @@ echo "=====================================" """
         cron_get.save = '0'
         cron_get.backupTo = ''
         cron_get.version = version
+        cron_get.kill_mode = 'process'  # 防止systemd杀死面板子进程
 
         result = crontab_obj.add_once_crontab(cron_get)
 
@@ -1396,7 +1401,7 @@ echo "=====================================" """
 
     # 下载云端php扩展配置
     def _get_cloud_phplib(self):
-        if not session.get('download_url'): session['download_url'] = 'https://node.aapanel.com'
+        if not session.get('download_url'): session['download_url'] = public.OfficialDownloadBase()
         download_url = session['download_url'] + '/install/lib/phplib_en.json'
         tstr = public.httpGet(download_url)
         data = json.loads(tstr)
@@ -2342,6 +2347,11 @@ echo "=====================================" """
                     if len(item['list']) > 4: item['list'] = item['list'][:4]
             # if item['type'] == 0 and plugin_list['pro'] >= 0:
             #     item['show'] = False
+
+        # 增加首页通知
+        notice = self.getPanelAnnounce(None).get("message", {'show': False, 'reason': 'closed'})
+        notice['name'] = "Notice"
+        data.insert(0, notice)
         return public.return_message(0,0,data)
 
 
@@ -2496,6 +2506,168 @@ echo "=====================================" """
             pass
 
         return public.return_message(0, 0, public.lang("Ignore success, this version will no longer be reminded to update."))
+
+    def __get_panel_announce_path(self):
+        return os.path.join(public.get_panel_path(), 'data', 'panel_announce.json')
+
+    def __get_panel_announce_cache_path(self):
+        return os.path.join(public.get_panel_path(), 'data', 'panel_announce_cache.json')
+
+    @staticmethod
+    def __to_bool(value, default=True):
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, int):
+            return value == 1
+        if isinstance(value, str):
+            value = value.strip().lower()
+            if value in ('1', 'true', 'yes', 'on', 'open', 'checked'):
+                return True
+            if value in ('0', 'false', 'no', 'off', 'close', 'closed', ''):
+                return False
+        return default
+
+    def __get_panel_announce_config(self):
+        config = {
+            'home_announce': True,
+            'read_md5': ''
+        }
+        path = self.__get_panel_announce_path()
+        if not os.path.exists(path):
+            return config
+        try:
+            data = json.loads(public.readFile(path) or '{}')
+            if isinstance(data, dict):
+                config['home_announce'] = self.__to_bool(data.get('home_announce', config['home_announce']))
+                config['read_md5'] = str(data.get('read_md5', '') or '').lower()
+        except:
+            pass
+        return config
+
+    def __write_panel_announce_config(self, config):
+        data = self.__get_panel_announce_config()
+        data.update(config)
+        data['home_announce'] = self.__to_bool(data.get('home_announce', True))
+        data['read_md5'] = str(data.get('read_md5', '') or '').lower()
+        return public.writeFile(self.__get_panel_announce_path(), json.dumps(data))
+
+    def __read_panel_announce_cache(self):
+        path = self.__get_panel_announce_cache_path()
+        if not os.path.exists(path):
+            return {}
+        try:
+            data = json.loads(public.readFile(path) or '{}')
+            if isinstance(data, dict):
+                return data
+        except:
+            pass
+        return {}
+
+    def __write_panel_announce_cache(self, data):
+        cache_data = {
+            'time': int(time.time()),
+            'data': data
+        }
+        return public.writeFile(self.__get_panel_announce_cache_path(), json.dumps(cache_data))
+
+    def __get_panel_announce_data(self, url):
+        cache_ttl = 3600*24
+        cache_data = self.__read_panel_announce_cache()
+        cache_time = int(cache_data.get('time', 0) or 0)
+        cached_response = cache_data.get('data')
+        if isinstance(cached_response, dict) and int(time.time()) - cache_time < cache_ttl:
+            return cached_response
+
+        try:
+            data = json.loads(public.HttpGet(url))
+            if isinstance(data, dict):
+                self.__write_panel_announce_cache(data)
+            return data
+        except:
+            if isinstance(cached_response, dict):
+                return cached_response
+            raise
+
+    @staticmethod
+    def __parse_panel_announce(announce):
+        result = {
+            'type': '',
+            'content': announce.strip(),
+            'url': '',
+            'raw': announce
+        }
+        content = announce.strip()
+
+        type_match = re.search(r'\[TYPE_([A-Z_]+)\]', content)
+        if type_match:
+            type_key = type_match.group(1).lower()
+            type_map = {
+                'pro': 'pro',
+                'update': 'update',
+                'security': 'security'
+            }
+            result['type'] = type_map.get(type_key, type_key)
+            content = re.sub(r'\[TYPE_[A-Z_]+\]\s*', '', content, count=1)
+
+        url_match = re.search(r'\[URL\s*=\s*["\']?([^\]"\']+)["\']?\]', content)
+        if url_match:
+            result['url'] = url_match.group(1).strip()
+            content = re.sub(r'\[URL\s*=\s*["\']?([^\]"\']+)["\']?\]\s*', '', content, count=1)
+
+        result['content'] = content.strip()
+        return result
+
+    def getPanelAnnounce(self, get):
+        api_path = '/api/panel/getPanelAnnounce'
+        url = self.__official_url + api_path
+
+        config = self.__get_panel_announce_config()
+        if not config.get('home_announce', True):
+            return public.return_message(0, 0, {'show': False, 'reason': 'closed'})
+
+        try:
+            data = self.__get_panel_announce_data(url)
+            if data.get("success",False):
+                announce = data.get("res", {}).get("announce", "")
+                if announce:
+                    announce_md5 = hashlib.md5(announce.encode('utf-8')).hexdigest()
+                    if announce_md5 == config.get('read_md5', ''):
+                        return public.return_message(0, 0, {
+                            'show': False,
+                            'reason': 'read',
+                            'md5': announce_md5
+                        })
+
+                    announce_info = self.__parse_panel_announce(announce)
+                    announce_info.update({
+                        'show': True,
+                        'md5': announce_md5
+                    })
+                    return public.return_message(0, 0, announce_info)
+            return public.return_message(0, 0, {'show': False, 'reason': 'empty'})
+        except Exception as ex:
+            # public.print_log("error info: {}".format(ex))
+            return public.return_message(-1, 0, {'show': False, 'reason': "error info: {}".format(ex)})
+
+    def markPanelAnnounceRead(self, get):
+        try:
+            get.validate([
+                Param('md5').Require().String(),
+            ], [
+                public.validate.trim_filter(),
+            ])
+        except Exception as ex:
+            public.print_log("error info: {}".format(ex))
+            return public.return_message(-1, 0, str(ex))
+
+        announce_md5 = get.md5.strip().lower()
+        if not re.match(r'^[a-f0-9]{32}$', announce_md5):
+            return public.return_message(-1, 0, public.lang("Parameter error!"))
+
+        if not self.__write_panel_announce_config({'read_md5': announce_md5}):
+            return public.return_message(-1, 0, public.lang("Operation failed"))
+        return public.return_message(0, 0, public.lang("Setup successfully!"))
+
 class Dpkg:
     def __init__(self):
         self._fileinfo = None

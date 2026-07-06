@@ -49,6 +49,8 @@ from flask_compress import Compress
 cache = SimpleCache(5000)
 import public
 
+public.install_node_failover_patch()  # 全局拦截补丁, node容灾
+
 # 初始化Flask应用
 app = Flask(
     __name__,
@@ -58,8 +60,12 @@ app = Flask(
 # 匹配你的 URL 格式：/apsess_xxx/...
 APSESS_PATH_RE = re.compile(r"^/((?:apsess_)+[A-Za-z0-9]{16,32})(/.*|$)")
 INVALID_REQUEST_TOKEN_HEAD = '__APSESS_INVALID__'
+PANEL_STATIC_EXTENSIONS = frozenset((
+    'css', 'js', 'png', 'jpg', 'jpeg', 'gif', 'ico', 'svg',
+    'woff', 'woff2', 'ttf', 'otf', 'eot', 'map', 'json'
+))
 
-
+# 解析和构建apsess_token的函数
 def build_apsess_url_token(token):
     token = (token or '').strip()
     if not token:
@@ -79,6 +85,53 @@ def get_apsess_url_token_from_session():
     return build_apsess_url_token(session.get('apsess_token', ''))
 
 
+def restore_panel_ssl_switch_session():
+    '''
+        @name 恢复关闭面板SSL后的登录态
+        @return bool
+    '''
+    switch_file = os.path.join(public.get_panel_path(), 'data', 'panel_ssl_switch.json')
+    try:
+        switch_data = json.loads(public.readFile(switch_file) or '{}')
+    except:
+        switch_data = {}
+
+    switch_token = request.cookies.get('panel_ssl_switch', '')
+    if switch_token and not re.match(r"^\w{48}$", switch_token):
+        return False
+
+    def remove_switch_file():
+        try:
+            if os.path.exists(switch_file):
+                os.remove(switch_file)
+        except:
+            pass
+
+    if not switch_data:
+        return False
+    if switch_token and switch_data.get('token') != switch_token:
+        return False
+    if int(switch_data.get('expires', 0)) < int(time.time()):
+        remove_switch_file()
+        return False
+    if switch_data.get('client_ip') and switch_data.get('client_ip') != public.GetClientIp():
+        return False
+    if switch_data.get('user_agent') and switch_data.get('user_agent') != request.headers.get('User-Agent', ''):
+        return False
+
+    session_data = switch_data.get('session', {})
+    if not isinstance(session_data, dict) or not session_data.get('login'):
+        remove_switch_file()
+        return False
+    session.clear()
+    for key, value in session_data.items():
+        session[key] = value
+    session['admin_auth'] = True
+    session.modified = True
+    remove_switch_file()
+    return True
+
+
 def _decode_url_path(path):
     return urllib.parse.unquote(path or '')
 
@@ -95,6 +148,130 @@ def _is_safe_url_path(path):
         if part in ('.', '..'):
             return False
     return True
+
+
+def _is_apsess_prefixed_path(path):
+    '''
+        @name 判断路径是否以apsess令牌段开头
+        @param path<string> 已解码的URL路径
+        @return bool 是否为apsess前缀路径
+    '''
+    normalized_path = '/' + (path or '').lstrip('/')
+    return APSESS_PATH_RE.match(normalized_path) is not None
+
+
+def _is_static_asset_path_value(path):
+    '''
+        @name 判断指定路径是否为面板静态资源路径
+        @param path<string> URL路径
+        @return bool
+    '''
+    clean_path = (path or '').split('?', 1)[0].split('#', 1)[0].rstrip('/')
+    if not clean_path:
+        return False
+    suffix = clean_path.rsplit('.', 1)
+    return len(suffix) == 2 and suffix[1].lower() in PANEL_STATIC_EXTENSIONS
+
+
+def _is_apsess_page_navigation(environ, real_path):
+    '''
+        @name 判断apsess路径是否为浏览器页面导航请求
+        @param environ<dict> WSGI environ
+        @param real_path<string> 真实URL路径
+        @return bool
+    '''
+    method = environ.get('REQUEST_METHOD', 'GET')
+    if method not in ('GET', 'HEAD'):
+        return False
+    if _is_static_asset_path_value(real_path):
+        return False
+
+    api_prefixes = (
+        '/api', '/v2', '/ajax', '/config', '/system', '/public', '/hook',
+        '/download', '/down', '/code', '/check_bind', '/get_app_bind_status'
+    )
+    if real_path.startswith(api_prefixes) and environ.get('QUERY_STRING'):
+        return False
+
+    accept = environ.get('HTTP_ACCEPT', '')
+    return not accept or 'text/html' in accept or '*/*' in accept
+
+
+def _build_apsess_redirect_location(apsess_token, real_path, query_string=''):
+    real_path = '/' + (real_path or '').lstrip('/')
+    location = '/' + build_apsess_url_token(apsess_token) + real_path
+    if query_string:
+        location += '?' + query_string
+    return location
+
+
+def _get_apsess_storage_token(token):
+    token = build_apsess_url_token(token)
+    while token.startswith('apsess_'):
+        token = token[len('apsess_'):]
+    return token
+
+
+def _get_response_header(headers, name):
+    name = name.lower()
+    for key, value in headers:
+        if key.lower() == name:
+            return value
+    return ''
+
+
+def _replace_response_headers(headers, body_length):
+    skip_headers = {'content-length', 'content-encoding'}
+    new_headers = [(key, value) for key, value in headers if key.lower() not in skip_headers]
+    new_headers.append(('Content-Length', str(body_length)))
+    return new_headers
+
+
+def _get_html_charset(content_type):
+    for item in (content_type or '').split(';'):
+        item = item.strip()
+        if item.lower().startswith('charset='):
+            return item.split('=', 1)[1].strip() or 'utf-8'
+    return 'utf-8'
+
+
+def _build_apsess_html_bootstrap(apsess_token, real_path):
+    token = json.dumps(_get_apsess_storage_token(apsess_token))
+    return '''<script>
+(function(){
+  var token = %s;
+  if (token) {
+    try { localStorage.setItem('apsess', token); } catch (e) {}
+  }
+}());
+</script>
+''' % token
+
+
+def _inject_apsess_html_bootstrap(body, content_type, apsess_token, real_path):
+    charset = _get_html_charset(content_type)
+    try:
+        html = body.decode(charset)
+    except:
+        return body
+
+    bootstrap = _build_apsess_html_bootstrap(apsess_token, real_path)
+    lower_html = html.lower()
+    head_index = lower_html.find('<head')
+    if head_index != -1:
+        head_close_index = html.find('>', head_index)
+        if head_close_index != -1:
+            html = html[:head_close_index + 1] + bootstrap + html[head_close_index + 1:]
+            return html.encode(charset)
+
+    body_index = lower_html.find('<body')
+    if body_index != -1:
+        body_close_index = html.find('>', body_index)
+        if body_close_index != -1:
+            html = html[:body_close_index + 1] + bootstrap + html[body_close_index + 1:]
+            return html.encode(charset)
+
+    return (bootstrap + html).encode(charset)
 
 
 def _safe_join_under(base_dir, relative_path):
@@ -124,8 +301,47 @@ class ApsessPathMiddleware:
     def __init__(self, app):
         self.app = app
 
+    def _call_with_apsess_html_bootstrap(self, environ, start_response, apsess_token, real_path):
+        if environ.get('REQUEST_METHOD', 'GET') == 'HEAD':
+            return self.app(environ, start_response)
+
+        # The bootstrap must be inserted before Flask-Compress can gzip the HTML.
+        environ['HTTP_ACCEPT_ENCODING'] = ''
+        response_info = {}
+        write_chunks = []
+
+        def capture_start_response(status, headers, exc_info=None):
+            response_info['status'] = status
+            response_info['headers'] = headers
+            response_info['exc_info'] = exc_info
+
+            def write(data):
+                write_chunks.append(data)
+
+            return write
+
+        app_iter = self.app(environ, capture_start_response)
+        try:
+            body = b''.join(write_chunks + list(app_iter))
+        finally:
+            if hasattr(app_iter, 'close'):
+                app_iter.close()
+
+        status = response_info.get('status', '500 Internal Server Error')
+        headers = response_info.get('headers', [])
+        exc_info = response_info.get('exc_info')
+        content_type = _get_response_header(headers, 'Content-Type')
+        content_encoding = _get_response_header(headers, 'Content-Encoding')
+
+        if status.startswith('200') and 'text/html' in content_type.lower() and not content_encoding:
+            body = _inject_apsess_html_bootstrap(body, content_type, apsess_token, real_path)
+            headers = _replace_response_headers(headers, len(body))
+
+        start_response(status, headers, exc_info)
+        return [body]
+
     def __call__(self, environ, start_response):
-        # 修复宝塔获取IP为空的BUG
+        # 修复获取IP为空的BUG
         if 'REMOTE_ADDR' not in environ:
             environ['REMOTE_ADDR'] = '127.0.0.1'
 
@@ -144,9 +360,23 @@ class ApsessPathMiddleware:
             real_path = '/' + real_path
         if not _is_safe_url_path(real_path):
             return Response('Not Found', status=404)(environ, start_response)
+        decoded_real_path = _decode_url_path(real_path)
+        if decoded_real_path.startswith('//') or _is_apsess_prefixed_path(decoded_real_path):
+            return Response('Not Found', status=404)(environ, start_response)
+
+        if decoded_real_path == '/home':
+            location = _build_apsess_redirect_location(
+                apsess_token,
+                '/',
+                environ.get('QUERY_STRING', '')
+            )
+            return Response('', status=302, headers={'Location': location})(environ, start_response)
 
         environ['bt.apsess_token'] = apsess_token
-        environ['PATH_INFO'] = _decode_url_path(real_path)
+        environ['PATH_INFO'] = decoded_real_path
+
+        if _is_apsess_page_navigation(environ, decoded_real_path):
+            return self._call_with_apsess_html_bootstrap(environ, start_response, apsess_token, decoded_real_path)
 
         return self.app(environ, start_response)
 
@@ -189,7 +419,8 @@ if os.path.exists(basic_auth_conf):
 # 初始化SESSION服务
 app.secret_key = public.md5(
     str(os.uname()) +
-    str(psutil.boot_time()))  # uuid.UUID(int=uuid.getnode()).hex[-12:]
+    str(psutil.boot_time()) +
+    public.get_secret_key())  # uuid.UUID(int=uuid.getnode()).hex[-12:]
 local_ip = None
 my_terms = {}
 
@@ -293,6 +524,42 @@ from public.translations import load_login_translations
 
 load_login_translations()
 
+
+def prepare_csrf_display_token():
+    '''
+        @name 准备HTML页面展示用的CSRF Token
+        @return string 展示给HTML页面的CSRF Token，apsess无效时返回占位无效Token
+    '''
+    g.csrf_display_token = ''
+    if not session.get('login', False):
+        return g.csrf_display_token
+
+    html_token_key = public.get_csrf_html_token_key()
+    cookie_token_key = public.get_csrf_cookie_token_key()
+
+    # 无论 apsess 是否有效，都先保证真实 CSRF 已存在，避免接口因 session token 缺失跳过校验。
+    if session.get(html_token_key) == INVALID_REQUEST_TOKEN_HEAD or not session.get(html_token_key):
+        session[html_token_key] = public.GetRandomString(48)
+    if not session.get(cookie_token_key):
+        session[cookie_token_key] = public.GetRandomString(48)
+
+    if getattr(g, 'apsess_verified', False):
+        g.csrf_display_token = session[html_token_key]
+    else:
+        # 只污染页面展示值，不污染 session 中真实 CSRF，后续 API 会被现有 CSRF 逻辑拦截。
+        g.csrf_display_token = INVALID_REQUEST_TOKEN_HEAD
+    return g.csrf_display_token
+
+
+@app.context_processor
+def inject_csrf_display_token():
+    '''
+        @name 注入HTML模板展示用的CSRF Token
+        @return dict 模板上下文扩展字典
+    '''
+    prepare_csrf_display_token()
+    return {}
+
 # ========================== Ignore Zipfile Encode Error ==============
 # hook zipfile.ZipInfo._encodeFilenameFlags, ignore the encode error
 _oldEncodeFilenameFlags = zipfile.ZipInfo._encodeFilenameFlags
@@ -332,13 +599,15 @@ menu_map = {
     'memuasoft': '/soft',  # App Store
     'memuaconfig': '/config',  # Settings
     'dologin': '/login',  # Log out
-    'memuASSL': '/ssl_domain'  # Domain management
+    'memuASSL': '/ssl_domain',  # Domain management
+    'menu_ai': '/ai', # ai
 }
 try:
     menu_default_conf_path = os.path.join(panel_path, 'config/menu.json')
     if os.path.exists(menu_default_conf_path):
         menu_read = public.readFile(menu_default_conf_path)
         menu_list = json.loads(menu_read) if menu_read else []
+        # 配置文件不存在时, 硬编码为准
         menu_map = {
             x.get('id').lower(): x.get('href') for x in menu_list if x.get('id') and x.get('href')
         } if menu_list else menu_map
@@ -471,10 +740,10 @@ def request_check():
         if request.args.get('action') in not_networks:
             return public.returnJson(False, 'This feature cannot be used in offline mode!'), json_header
     # 适配docker----  '/docker',
-
+    # 新路由新页面注册
     path_list = (
         '/site', '/ftp', '/database', '/soft', '/control', '/firewall',
-        '/files', '/xterm', '/crontab', '/config', '/docker', '/btdocker', '/breaking_through',
+        '/files', '/xterm', '/crontab', '/config', '/docker', '/btdocker', '/breaking_through','/billion-mail'
     )
     if not is_static_asset and (request.path.startswith(path_list) or request.path == "/") and request.method == "GET":
         if request.args.get('action') in [
@@ -498,52 +767,38 @@ def request_check():
             if reslut:
                 return redirect('/modify_password', 302)
 
-    # 处理登录页面相对路径的静态文件
-    if request.path.find('/static/') > 0:
-        new_auth_path = _auth_path = public.get_admin_path()
-
-        # 2024/1/3 下午 8:35 检测_auth_path是否有包含2个以上/符号,如果有则取最后一个/符号前的字符串然后替换成_auth_path
-        if _auth_path.count('/') > 1:
-            new_auth_path = _auth_path[:_auth_path.rfind('/')]
-
-        if not public.path_safe_check(request.path): return abort(404)  # 路径安全检查
-
-        _new_route = request.path[0:request.path.find('/static/')]
-        if request.path.find(_auth_path) == 0:
-            static_file = public.get_panel_path() + '/BTPanel' + request.path.replace(_auth_path, '').replace('//', '/')
-            if not os.path.exists(static_file): return abort(404)
-            return send_file(static_file, conditional=True, etag=True)
-        elif request.path.find(new_auth_path) == 0:
-            static_file = public.get_panel_path() + '/BTPanel' + request.path.replace(new_auth_path, '').replace('//',
-                                                                                                                 '/')
-            if not os.path.exists(static_file): return abort(404)
-            return send_file(static_file, conditional=True, etag=True)
-        elif _new_route in admin_path_checks:
-
-            static_file = public.get_panel_path() + '/BTPanel' + request.path[len(_new_route):].replace('//', '/')
-            # if not os.path.exists(static_file): return abort(404)
-            # 检测是否是插件静态文件
-            plugin_static_file = public.get_panel_path() + '/plugin/' + request.path
-            is_plugin_static = os.path.exists(plugin_static_file)
-
-            # 既不是面板静态文件也不是插件静态文件
-            if not os.path.exists(static_file) and not is_plugin_static: return abort(404)
-
-            # 如果是插件静态文件
-            if is_plugin_static:
-                return send_file(plugin_static_file, conditional=True, etag=True)
-
-            # 如果是面板静态文件
-            return send_file(static_file, conditional=True, etag=True)
-
-    if request.path.find('/static/img/soft_ico/ico') >= 0:
-        # 路径安全检查
-        if public.path_safe_check(request.path) is False:
+    # 处理登录页面相对路径的面板静态文件
+    panel_static_relative_path = get_panel_static_relative_path()
+    if request.path.find('/static/') > 0 and is_panel_static_route_request():
+        if not panel_static_relative_path:
             return abort(404)
-        static_file = "{}/BTPanel/{}".format(panel_path, request.path)
-        if not os.path.exists(static_file):
-            static_file = "{}/BTPanel/static/img/soft_ico/icon_plug.svg".format(panel_path)
-        return send_file(static_file, conditional=True, etag=True)
+        response = _send_file_if_safe(
+            os.path.join(public.get_panel_path(), 'BTPanel', 'static'),
+            panel_static_relative_path,
+            conditional=True,
+            etag=True
+        )
+        if not response: return abort(404)
+        return response
+
+    if request.path.startswith('/static/img/soft_ico/ico'):
+        if not panel_static_relative_path or not panel_static_relative_path.startswith('img/soft_ico/ico'):
+            return abort(404)
+        response = _send_file_if_safe(
+            os.path.join(panel_path, 'BTPanel', 'static'),
+            panel_static_relative_path,
+            conditional=True,
+            etag=True
+        )
+        if response: return response
+        response = _send_file_if_safe(
+            os.path.join(panel_path, 'BTPanel', 'static'),
+            'img/soft_ico/icon_plug.svg',
+            conditional=True,
+            etag=True
+        )
+        if not response: return abort(404)
+        return response
 
     # 处理登录成功状态，更新节点
     if 'login' in session and session['login'] == True:
@@ -741,7 +996,7 @@ REQUEST_FORM: {request_form}
     # 提交异常报告
     if not public.cache_get(pkey):
         try:
-            public.run_thread(public.httpPost, ("https://geterror.aapanel.com/bt_error/index.php", error_infos))
+            public.run_thread(public.httpPost, (f"{public.OfficialGetErrorBase()}/bt_error/index.php", error_infos))
             public.cache_set(pkey, 1, 1800)
         except Exception as e:
             pass
@@ -772,22 +1027,11 @@ REQUEST_FORM: {request_form}
 @app.route('/', methods=method_get)
 @app.route('/<path:sub_path>', methods=method_get)
 def index_new(sub_path: str = ''):
-    if session.get('login', False):
-        if not getattr(g, 'apsess_verified', False):
-            if sub_path not in ('robots.txt', 'favicon.ico'):
-                session['request_token_head'] = INVALID_REQUEST_TOKEN_HEAD
-        else:
-            html_token_key = public.get_csrf_html_token_key()
-            cookie_token_key = public.get_csrf_cookie_token_key()
-            if session.get('request_token_head') == INVALID_REQUEST_TOKEN_HEAD:
-                session.pop('request_token_head', None)
-            if not session.get(html_token_key):
-                session[html_token_key] = public.GetRandomString(48)
-            if not session.get('request_token_head'):
-                session['request_token_head'] = session[html_token_key]
-            if not session.get(cookie_token_key):
-                session[cookie_token_key] = public.GetRandomString(48)
-
+    '''
+        @name 渲染新版面板首页和子页面入口
+        @param sub_path<string> 面板子页面路径
+        @return Response
+    '''
     if sub_path == 'unsubscribe.html':
         return render_template('unsubscribe.html')
 
@@ -1991,12 +2235,133 @@ def proxy_rspamd_requests(path):
     if os.path.exists(passwd_path):
         rspamd_passwd = public.readFile(passwd_path).strip()
 
+    def send_rspamd_static_file(static_path):
+        base_dir = '/usr/share/rspamd/www/rspamd'
+        static_file = _safe_join_under(base_dir, static_path)
+        if not static_file or not os.path.isfile(static_file):
+            return abort(404)
+
+        if static_path == 'js/app/common.js':
+            common_js = public.readFile(static_file)
+            common_js = common_js.replace(
+                'url: window.location.origin + window.location.pathname',
+                'url: window.location.origin + window.location.pathname.replace(/\\/?$/, "/")'
+            )
+            resp = Resp(common_js, content_type='application/javascript; charset=utf-8')
+            resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+            return resp
+        return send_file(static_file, conditional=True, etag=True)
+
+    def render_rspamd_index():
+        html_file = '/usr/share/rspamd/www/rspamd/index.html'
+        if not os.path.exists(html_file):
+            return send_file('/usr/share/rspamd/www/rspamd/', conditional=True, etag=True)
+
+        html_content = public.readFile(html_file)
+        rspamd_bootstrap_script = '''<script>
+(function () {
+    var rspamdPassword = %s;
+    if (rspamdPassword) {
+        sessionStorage.setItem("Password", rspamdPassword);
+    }
+
+    var rspamdEndpoints = [
+        "auth", "stat", "neighbours", "list_extractors", "list_transforms",
+        "graph", "maps", "actions", "symbols", "history", "errors",
+        "check_selector", "saveactions", "savesymbols", "getmap"
+    ];
+
+    function getRspamdBasePath() {
+        var pathname = window.location.pathname.replace(/\\/+$/, "");
+        var marker = "/rspamd";
+        var markerIndex = pathname.indexOf(marker);
+        if (markerIndex === -1) {
+            return marker;
+        }
+        return pathname.substring(0, markerIndex + marker.length);
+    }
+
+    var rspamdBasePath = getRspamdBasePath();
+
+    function suffixAfter(value, marker) {
+        var index = value.indexOf(marker);
+        if (index === -1) {
+            return "";
+        }
+        return value.substring(index + marker.length);
+    }
+
+    function normalizeRspamdUrl(url) {
+        if (typeof url !== "string") {
+            return url;
+        }
+
+        for (var i = 0; i < rspamdEndpoints.length; i++) {
+            var endpoint = rspamdEndpoints[i];
+            var endpointPath = "/" + endpoint;
+            var compactEndpoint = "rspamd" + endpoint;
+            var slashEndpoint = "rspamd/" + endpoint;
+
+            if (url === endpoint || url.indexOf(endpoint + "?") === 0 || url.indexOf(endpoint + "#") === 0) {
+                return rspamdBasePath + "/" + url;
+            }
+            if (url === endpointPath || url.indexOf(endpointPath + "?") === 0 || url.indexOf(endpointPath + "#") === 0) {
+                return rspamdBasePath + url;
+            }
+            if (url.indexOf(compactEndpoint) !== -1) {
+                return rspamdBasePath + "/" + endpoint + suffixAfter(url, compactEndpoint);
+            }
+            if (url.indexOf(slashEndpoint) !== -1) {
+                return rspamdBasePath + "/" + endpoint + suffixAfter(url, slashEndpoint);
+            }
+        }
+
+        return url;
+    }
+
+    var xhrOpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function (method, url) {
+        arguments[1] = normalizeRspamdUrl(url);
+        return xhrOpen.apply(this, arguments);
+    };
+
+    if (window.fetch) {
+        var originalFetch = window.fetch;
+        window.fetch = function (input, init) {
+            if (typeof input === "string") {
+                input = normalizeRspamdUrl(input);
+            }
+            return originalFetch.call(this, input, init);
+        };
+    }
+}());
+</script>''' % json.dumps(rspamd_passwd or '')
+
+        if '<head>' in html_content:
+            html_content = html_content.replace('<head>', '<head>' + rspamd_bootstrap_script, 1)
+        else:
+            html_content = rspamd_bootstrap_script + html_content
+        return Resp(html_content, content_type='text/html; charset=utf-8')
+
+    panel_cookie_name = app.config['SESSION_COOKIE_NAME']
+
     if rspamd_ver >= 4:
         param = str(request.url).split('?')
         param = "" if len(param) < 2 else param[-1]
         import requests
         headers = {}
+
         for h in request.headers.keys():
+            if h.lower() == 'cookie':
+                cookie_list = []
+                for cookie_name in request.cookies.keys():
+                    if cookie_name == panel_cookie_name:
+                        continue
+                    cookie_list.append('{}={}'.format(cookie_name, request.cookies[cookie_name]))
+                if cookie_list:
+                    headers[h] = '; '.join(cookie_list)
+                continue
+
             headers[h] = request.headers[h]
 
             # rspamd 密码注入 - 统一处理 GET 和 POST 请求
@@ -2005,26 +2370,100 @@ def proxy_rspamd_requests(path):
 
         if request.method == "GET":
             if re.search(r"\.(js|css)$", path):
-                return send_file('/usr/share/rspamd/www/rspamd/' + path,
-                                 conditional=True,
-                                 etag=True)
-            if path == "/":
-                # 读取 rspamd 首页 HTML，注入自动登录脚本
+                return send_rspamd_static_file(path)
+            if path in ("", "/"):
+                # 读取 rspamd 首页 HTML，注入自动登录和 apsess URL 兼容脚本
                 html_file = '/usr/share/rspamd/www/rspamd/index.html'
                 if os.path.exists(html_file):
                     html_content = public.readFile(html_file)
                     rspamd_passwd = ''
                     if os.path.exists('/etc/rspamd/passwd'):
                         rspamd_passwd = public.readFile(passwd_path).strip()
-                    if rspamd_passwd:
-                        # 注入脚本：在 rspamd.js 加载前设置密码到 sessionStorage
-                        auto_login_script = '''<script>                                                                                                                                                                                                                                                            
-        // 自动登录：设置 rspamd 密码到 sessionStorage                                                                                                                                                                                                                                                                 
-        sessionStorage.setItem("Password", "''' + rspamd_passwd + '''");                                                                                                                                                                                                                                               
-        </script>'''
-                        if '<head>' in html_content:
-                            html_content = html_content.replace('<head>', '<head>' + auto_login_script, 1)
-                        return Response(html_content, content_type='text/html; charset=utf-8')
+
+                    rspamd_bootstrap_script = '''<script>
+(function () {
+    var rspamdPassword = %s;
+    if (rspamdPassword) {
+        sessionStorage.setItem("Password", rspamdPassword);
+    }
+
+    var rspamdEndpoints = [
+        "auth", "stat", "neighbours", "list_extractors", "list_transforms",
+        "graph", "maps", "actions", "symbols", "history", "errors",
+        "check_selector", "saveactions", "savesymbols", "getmap"
+    ];
+
+    function getRspamdBasePath() {
+        var pathname = window.location.pathname.replace(/\\/+$/, "");
+        var marker = "/rspamd";
+        var markerIndex = pathname.indexOf(marker);
+        if (markerIndex === -1) {
+            return marker;
+        }
+        return pathname.substring(0, markerIndex + marker.length);
+    }
+
+    var rspamdBasePath = getRspamdBasePath();
+
+    function suffixAfter(value, marker) {
+        var index = value.indexOf(marker);
+        if (index === -1) {
+            return "";
+        }
+        return value.substring(index + marker.length);
+    }
+
+    function normalizeRspamdUrl(url) {
+        if (typeof url !== "string") {
+            return url;
+        }
+
+        for (var i = 0; i < rspamdEndpoints.length; i++) {
+            var endpoint = rspamdEndpoints[i];
+            var endpointPath = "/" + endpoint;
+            var compactEndpoint = "rspamd" + endpoint;
+            var slashEndpoint = "rspamd/" + endpoint;
+
+            if (url === endpoint || url.indexOf(endpoint + "?") === 0 || url.indexOf(endpoint + "#") === 0) {
+                return rspamdBasePath + "/" + url;
+            }
+            if (url === endpointPath || url.indexOf(endpointPath + "?") === 0 || url.indexOf(endpointPath + "#") === 0) {
+                return rspamdBasePath + url;
+            }
+            if (url.indexOf(compactEndpoint) !== -1) {
+                return rspamdBasePath + "/" + endpoint + suffixAfter(url, compactEndpoint);
+            }
+            if (url.indexOf(slashEndpoint) !== -1) {
+                return rspamdBasePath + "/" + endpoint + suffixAfter(url, slashEndpoint);
+            }
+        }
+
+        return url;
+    }
+
+    var xhrOpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function (method, url) {
+        arguments[1] = normalizeRspamdUrl(url);
+        return xhrOpen.apply(this, arguments);
+    };
+
+    if (window.fetch) {
+        var originalFetch = window.fetch;
+        window.fetch = function (input, init) {
+            if (typeof input === "string") {
+                input = normalizeRspamdUrl(input);
+            }
+            return originalFetch.call(this, input, init);
+        };
+    }
+}());
+</script>''' % json.dumps(rspamd_passwd or '')
+
+                    if '<head>' in html_content:
+                        html_content = html_content.replace('<head>', '<head>' + rspamd_bootstrap_script, 1)
+                    else:
+                        html_content = rspamd_bootstrap_script + html_content
+                    return Resp(html_content, content_type='text/html; charset=utf-8')
                 return send_file('/usr/share/rspamd/www/rspamd/',
                                  conditional=True,
                                  etag=True)
@@ -2067,17 +2506,25 @@ def proxy_rspamd_requests(path):
         param = "" if len(param) < 2 else param[-1]
         import requests
         headers = {}
+
         for h in request.headers.keys():
+            if h.lower() == 'cookie':
+                cookie_list = []
+                for cookie_name in request.cookies.keys():
+                    if cookie_name == panel_cookie_name:
+                        continue
+                    cookie_list.append('{}={}'.format(cookie_name, request.cookies[cookie_name]))
+                if cookie_list:
+                    headers[h] = '; '.join(cookie_list)
+                continue
+
             headers[h] = request.headers[h]
+
         if request.method == "GET":
             if re.search(r"\.(js|css)$", path):
-                return send_file('/usr/share/rspamd/www/rspamd/' + path,
-                                 conditional=True,
-                                 etag=True)
-            if path == "/":
-                return send_file('/usr/share/rspamd/www/rspamd/',
-                                 conditional=True,
-                                 etag=True)
+                return send_rspamd_static_file(path)
+            if path in ("", "/"):
+                return render_rspamd_index()
             url = "http://127.0.0.1:11334/rspamd/" + path + "?" + param
             for i in [
                 'stat', 'auth', 'neighbours', 'list_extractors',
@@ -2129,6 +2576,8 @@ def login():
     # 面板登录接口
     if os.path.exists('install.pl'): return redirect('/install')
     global admin_check_auth, admin_path, route_path
+    if request.method == method_get[0] and request.path in [route_path, route_path + '/']:
+        restore_panel_ssl_switch_session()
     is_auth_path = False
     if admin_path != '/bt' and os.path.exists(
             admin_path_file) and not 'admin_auth' in session:
@@ -2257,6 +2706,11 @@ def login():
                 return public.error_not_login(None)
 
     session['admin_auth'] = True
+    if session.get('login') is True:
+        apsess_token = build_apsess_url_token(session.get('apsess_token', ''))
+        if apsess_token:
+            return redirect('/{}/'.format(apsess_token))
+        return redirect('/')
 
     comReturn = common.panelSetup().init()
     if comReturn:
@@ -2651,7 +3105,8 @@ def panel_public():
 def panel_other(name=None, fun=None, stype=None):
     # 左侧栏路由
     if name in ('site', 'database', 'docker', 'wp', 'mail', 'security', 'crontab', 'waf', 'setting', 'logs',
-                'monitor/system', 'control', 'binds', 'softs', 'modify_password', 'flow', 'ssl_domain', 'node'):
+                'monitor/system', 'control', 'binds', 'softs', 'modify_password', 'flow', 'ssl_domain', 'node',
+                'ai'):
         return index_new('{}/{}'.format(name, fun))
 
     # 插件接口
@@ -2942,6 +3397,15 @@ def get_phpmyadmin_dir():
     return None
 
 
+def build_phpmyadmin_proxy_url(panel_pool, port, pma_dir, path_full=None):
+    path = urllib.parse.quote((path_full or 'index.php').lstrip('/'), safe="/:@!$&'()*+,;=-._~")
+    proxy_url = '{}127.0.0.1:{}/{}/{}'.format(panel_pool, port, pma_dir, path)
+    query_string = request.query_string.decode('latin-1')
+    if query_string:
+        proxy_url += '?' + query_string
+    return proxy_url
+
+
 class run_exec:
     # 模块访问对像
     def run(self, toObject, defs, get):
@@ -3055,12 +3519,21 @@ def FtpPort():
         port = '21'
     session['port'] = port
 
+# 清理公告缓存
+def clear_panel_announce_cache_after_login():
+    try:
+        announce_cache_path = os.path.join(public.get_panel_path(), 'data', 'panel_announce_cache.json')
+        if os.path.exists(announce_cache_path):
+            os.remove(announce_cache_path)
+    except Exception as ex:
+        pass
+
 
 def is_login(result):
     # 判断是否登录2
     if 'login' in session:
         if session['login'] == True:
-            pass
+            clear_panel_announce_cache_after_login()
     return result
 
 
@@ -3705,12 +4178,27 @@ def pma_proxy(path_full=None):
         else:
             panel_pool = 'http://'
 
-    proxy_url = '{}127.0.0.1:{}/{}/'.format(
-        panel_pool, pmd[1], pmd[0]) + request.full_path.replace(
-        '/phpmyadmin/', '')
+    proxy_url = build_phpmyadmin_proxy_url(panel_pool, pmd[1], pmd[0], path_full)
     from panelHttpProxy import HttpProxy
     px = HttpProxy()
     return px.proxy(proxy_url)
+
+
+billionmail_method_all = method_all + ['PUT', 'PATCH', 'DELETE', 'OPTIONS']
+
+
+@app.route('/billionmail', defaults={'path_full': ''}, methods=billionmail_method_all)
+@app.route('/billionmail/', defaults={'path_full': ''}, methods=billionmail_method_all)
+@app.route('/billionmail/<path:path_full>', methods=billionmail_method_all)
+def billionmail_proxy(path_full=''):
+    '''
+        @name BillionMail proxy
+        @return Response
+    '''
+    comReturn = comm.local()
+    if comReturn: return comReturn
+    from panelBillionMailProxy import BillionMailProxy
+    return BillionMailProxy('/billionmail').proxy(path_full)
 
 
 @app.route("/adminer/<path:path_full>", methods=method_all)
@@ -4071,6 +4559,8 @@ def site_v2(pdata=None):
         'get_wp_configurations',
         'save_wp_configurations',
         'wp_backup_list',
+        'set_backup_config',
+        'get_backup_cron_status',
         'wp_backup',
         'wp_restore',
         'wp_remove_backup',
@@ -4152,6 +4642,7 @@ def site_v2(pdata=None):
         'get_site_global',
         'site_performance_test',
         'batch_add_wp',
+        'to_php_backup_create',
         # 新增多服务
         'set_default_site_conf',
         'get_multi_webservice_status',
@@ -4207,6 +4698,20 @@ def git_tools(pdata=None):
         'get_clone_progress'
     )
     return publicObject(gitObject, defs, None, pdata)
+
+@app.route(route_v2 + '/guide', methods=method_all)
+def guide_page(pdata=None):
+    comReturn = comm.local()
+    if comReturn: return comReturn
+    import panel_guide_page
+    guideObject = panel_guide_page.GuidePage()
+    defs = (
+        'guide_page_install',
+        'get_general_progress',
+        'close_guide',
+        'get_save_config'
+    )
+    return publicObject(guideObject, defs, None, pdata)
 
 
 @app.route(route_v2 + '/ftp', methods=method_all)
@@ -5017,6 +5522,7 @@ def ajax_v2(pdata=None):
             'GetInstalled', 'GetPHPConfig', 'SetPHPConfig', 'log_analysis',
             'speed_log', 'get_result', 'get_detailed', 'ignore_version',
             'UpdatePanel', 'RepPanel', 'ScheduleUpdate',  # 更新面板, 修复面板, 预约延迟更新
+            'getPanelAnnounce', 'markPanelAnnounceRead',
             )
 
     return publicObject(ajaxObject, defs, None, pdata)
@@ -5592,6 +6098,8 @@ def login_v2():
     # 面板登录接口
     if os.path.exists('install.pl'): return redirect('/install')
     global admin_check_auth, admin_path, route_path
+    if request.method == method_get[0] and request.path in [route_v2 + route_path, route_v2 + route_path + '/']:
+        restore_panel_ssl_switch_session()
     is_auth_path = False
     if admin_path != '/bt' and os.path.exists(
             admin_path_file) and not 'admin_auth' in session:
@@ -5713,6 +6221,11 @@ def login_v2():
                 return public.error_not_login(None)
 
     session['admin_auth'] = True
+    if session.get('login') is True:
+        apsess_token = build_apsess_url_token(session.get('apsess_token', ''))
+        if apsess_token:
+            return redirect('/{}/'.format(apsess_token))
+        return redirect('/')
     comReturn = common.panelSetup().init()
     if comReturn: return comReturn
 
@@ -6371,8 +6884,8 @@ def ws_home_v2(ws):
         @return void
     '''
 
-    comReturn = comm.local()
-    if comReturn: return comReturn
+    # comReturn = comm.local()
+    # if comReturn: return comReturn
 
     get = ws.receive()
     get = json.loads(get)
@@ -6722,12 +7235,24 @@ def pma_proxy_v2(path_full=None):
         else:
             panel_pool = 'http://'
 
-    proxy_url = '{}127.0.0.1:{}/{}/'.format(
-        panel_pool, pmd[1], pmd[0]) + request.full_path.replace(
-        '/phpmyadmin/', '')
+    proxy_url = build_phpmyadmin_proxy_url(panel_pool, pmd[1], pmd[0], path_full)
     from panel_http_proxy_v2 import HttpProxy
     px = HttpProxy()
     return px.proxy(proxy_url)
+
+
+@app.route(route_v2 + '/billionmail', defaults={'path_full': ''}, methods=billionmail_method_all)
+@app.route(route_v2 + '/billionmail/', defaults={'path_full': ''}, methods=billionmail_method_all)
+@app.route(route_v2 + '/billionmail/<path:path_full>', methods=billionmail_method_all)
+def billionmail_proxy_v2(path_full=''):
+    '''
+        @name BillionMail proxy
+        @return Response
+    '''
+    comReturn = comm.local()
+    if comReturn: return comReturn
+    from panelBillionMailProxy import BillionMailProxy
+    return BillionMailProxy(route_v2 + '/billionmail').proxy(path_full)
 
 
 @app.route(route_v2 + '/p/<int:port>', methods=method_all)
@@ -7169,63 +7694,106 @@ def init_cdn_config(app):
 init_cdn_config(app)
 
 
-def is_static_asset_request():
-    if request.path.startswith('/static/') or request.path.startswith('/v2/static/'):
+def _has_panel_static_extension(path):
+    filename = _decode_url_path(path).rsplit('/', 1)[-1]
+    if '.' not in filename:
+        return False
+    return filename.rsplit('.', 1)[-1].lower() in PANEL_STATIC_EXTENSIONS
+
+
+def _normalize_route_prefix(prefix):
+    prefix = (prefix or '').strip()
+    if not prefix:
+        return ''
+    if not prefix.startswith('/'):
+        prefix = '/' + prefix
+    if prefix != '/':
+        prefix = prefix.rstrip('/')
+    if prefix == '/' or not _is_safe_url_path(prefix):
+        return ''
+    return prefix
+
+
+def _panel_static_route_prefixes():
+    prefixes = ['/static/', '/v2/static/']
+    for prefix in (public.get_admin_path(), admin_path, route_path):
+        normalized = _normalize_route_prefix(prefix)
+        if not normalized:
+            continue
+        prefixes.append(normalized + '/static/')
+        if normalized.count('/') > 1:
+            parent_prefix = normalized[:normalized.rfind('/')]
+            parent_prefix = _normalize_route_prefix(parent_prefix)
+            if parent_prefix:
+                prefixes.append(parent_prefix + '/static/')
+
+    result = []
+    for prefix in prefixes:
+        if prefix not in result:
+            result.append(prefix)
+    return result
+
+
+def get_panel_static_relative_path():
+    if not _is_safe_url_path(request.path) or not _has_panel_static_extension(request.path):
+        return None
+    for prefix in _panel_static_route_prefixes():
+        if request.path.startswith(prefix):
+            return request.path[len(prefix):]
+    return None
+
+
+def is_panel_static_route_request():
+    for prefix in _panel_static_route_prefixes():
+        if request.path.startswith(prefix):
+            return True
+    return False
+
+
+def is_panel_static_asset_request():
+    return get_panel_static_relative_path() is not None
+
+
+def is_static_asset_path():
+    if is_panel_static_asset_request():
         return True
+    if not _is_safe_url_path(request.path) or not _has_panel_static_extension(request.path):
+        return False
     return re.match(r'^(/v2)?/[\w\-]+/static/[\w\./\-]+$', request.path) is not None
 
 
-# 1. 定义：判断哪些请求需要强制校验 apsess
-def require_apsess():
-    normalized_path = request.path.rstrip('/') or '/'
-    fixed_entry_paths = {
-        '/',
-        admin_path.rstrip('/') or '/',
-        route_path.rstrip('/') or '/',
-    }
-    if normalized_path in fixed_entry_paths:
+def is_static_asset_request():
+    return is_static_asset_path()
+
+
+def is_safe_static_route_request():
+    if request.method not in ('GET', 'HEAD'):
         return False
-
-    # 公开路径：无需 apsess 校验
-    public_paths = (
-        '/login', '/v2/login', '/install', '/static/', '/safe', '/hook', '/public',
-        '/down', '/userLang', '/google/redirect', '/google/callback'
-    )
-    for p in public_paths:
-        if request.path == p or request.path.startswith(p):
-            return False
-    # 已登录用户：强制校验 apsess
-    return session.get('login', False)
+    return is_static_asset_path()
 
 
-def handle_invalid_apsess():
-    if not require_apsess():
-        return True
-
-    expected_token = get_apsess_url_token_from_session()
-    if not expected_token:
-        session['apsess_token'] = build_apsess_session_token()
-        expected_token = get_apsess_url_token_from_session()
-    if request.method == 'GET' and not request.args and expected_token and not is_static_asset_request():
-        return redirect('/' + expected_token + request.path, 302)
-    return abort(403)
+def is_plugin_api_exempt_request():
+    plugin_paths = {'/plugin', (route_v2.rstrip('/') or '') + '/plugin'}
+    return request.path in plugin_paths
 
 
-# 2. 定义：核心 apsess 校验逻辑
 def check_apsess_path():
-    # 从 environ 中获取中间件提取的令牌
+    '''
+        @name 检查URL中的apsess路径令牌
+        @return bool 返回True表示继续执行后续请求流程
+    '''
+    # 从 environ 中获取中间件提取的令牌，只做标记不拦截，避免影响未知 API。
     apsess_token = build_apsess_url_token(request.environ.get('bt.apsess_token', ''))
     g.apsess_path_token = apsess_token  # 写入 g 供后续接口使用
     g.apsess_verified = False  # 默认未验证
 
-    # 无令牌：若无需强制校验则放行，否则拒绝
     if not apsess_token:
-        return handle_invalid_apsess()
+        return True
 
     # 对比 session 中的令牌（登录时生成）
     expected_token = get_apsess_url_token_from_session()
     if not expected_token or apsess_token != expected_token:
-        return handle_invalid_apsess()
+        return True
 
     # 校验通过：标记上下文
     g.apsess_verified = True

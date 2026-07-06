@@ -298,6 +298,20 @@ class data:
         #     return res
         # except: return res
 
+    # 获取php默认备份配置
+    def get_php_backup_config(self):
+        config_file = "/www/server/panel/data/php_backup_config.json"
+        default = {'bak_type': "file", 'bak_local': "local", 'bak_remote': ""}
+        try:
+            if os.path.exists(config_file):
+                conf = json.loads(public.readFile(config_file))
+                default['bak_type'] = conf.get('bak_type', "file")
+                default['bak_local'] = conf.get('bak_local', "local")
+                default['bak_remote'] = conf.get('bak_remote', "")
+        except Exception:
+            pass
+        return default
+
     '''
      * 取数据列表
      * @param String _GET['tab'] 数据库表名
@@ -332,6 +346,8 @@ class data:
         # 先检查tasks表内是否有 install_status、message字段
         if get.table == 'tasks':
             data = public.M('tasks').find()
+            if not isinstance(data, dict):
+                return public.return_message(0, 0, "No data available")
             if 'install_status' not in data.keys():
                 public.M('tasks').execute("ALTER TABLE 'tasks' ADD 'install_status' INTEGER DEFAULT 1", ())
             if 'message' not in data.keys():
@@ -363,10 +379,24 @@ class data:
                             data['data'][i]['ps'] = '自动备份'
                         else:
                             data['data'][i]['ps'] = '手动备份'
+
+                    if data['data'][i]['backup_type'] != 1:
+                        data['data'][i]['backup_type'] = 0
+
                     #判断本地文件是否存在，以确定能否下载
+                    bak_method = data['data'][i]['filename'].split('|')
+                    if len(bak_method) == 3:
+                        data['data'][i]['bak_method'] = bak_method[1]
+                    else:
+                        data['data'][i]['bak_method'] = 'local'
+
                     data['data'][i]['local']=data['data'][i]['filename'].split('|')[0]
                     data['data'][i]['localexist']=0 if os.path.isfile(data['data'][i]['local']) else 1
 
+                bak_config = self.get_php_backup_config()
+                data['bak_type'] = bak_config.get('bak_type')
+                data['bak_local'] = bak_config.get('bak_local')
+                data['bak_remote'] = bak_config.get('bak_remote')
             elif table == 'sites' or table == 'databases':
                 type = '0'
                 site_ids=[]
@@ -988,7 +1018,7 @@ class data:
             'ftps'      :   "id,pid,name,password,status,ps,addtime,path",
             'databases' :   "id,sid,pid,name,username,password,accept,ps,addtime,db_type,conn_config",
             'logs'      :   "id,uid,username,type,log,addtime",
-            'backup'    :   "id,pid,name,filename,addtime,size,ps",
+            'backup'    :   "id,pid,name,filename,addtime,size,ps,backup_type",
             'users'     :   "id,username,phone,email,login_ip,login_time",
             'firewall'  :   "id,port,ps,addtime",
             'domain'    :   "id,pid,name,port,addtime",

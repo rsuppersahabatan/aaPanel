@@ -90,7 +90,17 @@
             "google": "fa",
             "title": "فارسی",
             "cn": "波斯语"
-        }
-
+        },
+       {
+            "name": "ar",
+            "google": "ar",
+            "title": "العربية",
+            "cn": "阿拉伯语"
+       },{
+            "name": "lo",
+            "google": "lo",
+            "title": "ພາສາລາວ",
+            "cn": "老挝语"
+       }
     ]
 }

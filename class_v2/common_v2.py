@@ -107,7 +107,7 @@ class panelAdmin(panelSetup):
             session['brand'] = public.GetConfigValue('brand')
             session['product'] = public.GetConfigValue('product')
             session['rootPath'] = '/www'
-            session['download_url'] = 'https://node.aapanel.com'
+            session['download_url'] = public.OfficialDownloadBase()
             session['setupPath'] = session['rootPath'] + '/server'
             session['logsPath'] = '/www/wwwlogs'
             session['yaer'] = datetime.now().year

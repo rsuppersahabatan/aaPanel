@@ -802,55 +802,58 @@ class backup:
                         self.echo_info(public.lang(
                             'User settings do not retain local backups, deleted {}', dfile
                         ))
-
-        # 清理多余备份
-        if find['project_type'] != 'WP2':
-            if save_local:
-                local_backups = public.M('backup').where(
-                    "cron_id=? AND type=? AND pid=? AND filename NOT LIKE '%|%' AND filename LIKE?",
-                    (cron_id, '0', pid, f'{self._BACKUP_DIR}%')
-                ).order('addtime').select()
-                # 清理local
-                self.__backup_site_delete_old('Local Disk', local_backups, save, 'site')
-            if self._cloud:
-                cloud_backups = public.M('backup').where(
-                    'cron_id=? and type=? and pid=? and filename LIKE ?',
-                    (cron_id, '0', pid, f"%{self._cloud._name}%")
-                ).order('addtime').select()
-                self.__backup_site_delete_old(self._cloud._title, cloud_backups, save, 'site')  # 清理cloud
-        else:
-            # wp
-            site_id = public.M('sites').where('name=?', (siteName,)).getField('id')
-            if save_local:
-                local_wp_backups = public.M('wordpress_backups').where(
-                    "cron_id=? AND s_id=? AND bak_file NOT LIKE '%|%' AND bak_file LIKE?",
-                    (cron_id, site_id, f'{self._BACKUP_DIR}%')
-                ).order('bak_time').select()
-                local_wp_backups = [
-                    {
-                        'id': x.get('id'),
-                        'pid': x.get('s_id'),
-                        'name': x.get('bak_file', '').split('/')[-1],  # 纯文件名
-                        'filename': x.get('bak_file', ''),  # 绝对路径
-                    } for x in local_wp_backups if x
-                ]
-                # 清理wp2 local
-                self.__backup_site_delete_old('Local Disk', local_wp_backups, save, 'site', True)
-            if self._cloud:
-                cloud_wp_backups = public.M('wordpress_backups').where(
-                    "cron_id=? AND s_id=? AND bak_file LIKE ? AND bak_file LIKE '%|%'",
-                    (cron_id, site_id, f"%{self._cloud._name}%")
-                ).order('bak_time').select()
-                cloud_wp_backups = [
-                    {
-                        'id': x.get('id'),
-                        'pid': x.get('s_id'),
-                        'name': x.get('bak_file', '').split('|')[0].split('/')[-1],  # 纯文件名
-                        'filename': x.get('bak_file', ''),  # 绝对路径
-                    } for x in cloud_wp_backups if x and isinstance(x, dict)
-                ]
-                # 清理wp2 cloud
-                self.__backup_site_delete_old(self._cloud._title, cloud_wp_backups, save, 'site', True)
+        try:
+            # 清理多余备份
+            if find['project_type'] != 'WP2':
+                if save_local:
+                    local_backups = public.M('backup').where(
+                        "cron_id=? AND type=? AND pid=? AND filename NOT LIKE '%|%' AND filename LIKE?",
+                        (cron_id, '0', pid, f'{self._BACKUP_DIR}%')
+                    ).order('addtime').select()
+                    # 清理local
+                    self.__backup_site_delete_old('Local Disk', local_backups, save, 'site')
+                if self._cloud:
+                    cloud_backups = public.M('backup').where(
+                        'cron_id=? and type=? and pid=? and filename LIKE ?',
+                        (cron_id, '0', pid, f"%{self._cloud._name}%")
+                    ).order('addtime').select()
+                    self.__backup_site_delete_old(self._cloud._title, cloud_backups, save, 'site')  # 清理cloud
+            else:
+                # wp
+                site_id = public.M('sites').where('name=?', (siteName,)).getField('id')
+                if save_local:
+                    local_wp_backups = public.M('wordpress_backups').where(
+                        "cron_id=? AND s_id=? AND bak_file NOT LIKE '%|%' AND bak_file LIKE?",
+                        (cron_id, site_id, f'{self._BACKUP_DIR}%')
+                    ).order('bak_time').select()
+                    local_wp_backups = [
+                        {
+                            'id': x.get('id'),
+                            'pid': x.get('s_id'),
+                            'name': x.get('bak_file', '').split('/')[-1],  # 纯文件名
+                            'filename': x.get('bak_file', ''),  # 绝对路径
+                        } for x in local_wp_backups if x and isinstance(x, dict)
+                    ]
+                    # 清理wp2 local
+                    self.__backup_site_delete_old('Local Disk', local_wp_backups, save, 'site', True)
+                if self._cloud:
+                    cloud_wp_backups = public.M('wordpress_backups').where(
+                        "cron_id=? AND s_id=? AND bak_file LIKE ? AND bak_file LIKE '%|%'",
+                        (cron_id, site_id, f"%{self._cloud._name}%")
+                    ).order('bak_time').select()
+                    cloud_wp_backups = [
+                        {
+                            'id': x.get('id'),
+                            'pid': x.get('s_id'),
+                            'name': x.get('bak_file', '').split('|')[0].split('/')[-1],  # 纯文件名
+                            'filename': x.get('bak_file', ''),  # 绝对路径
+                        } for x in cloud_wp_backups if x and isinstance(x, dict)
+                    ]
+                    # 清理wp2 cloud
+                    self.__backup_site_delete_old(self._cloud._title, cloud_wp_backups, save, 'site', True)
+        except Exception:
+            import traceback
+            self.echo_error(f"cleaning up old backups fail: {traceback.format_exc()}")
 
         self.echo_end()
         return dfile
@@ -2242,3 +2245,26 @@ Please handle it as soon as possible""".format(
                 public.print_log(f"Monitoring data repair failed, file has been deleted: {db_path}")
 
             return False
+
+    # 获取远程备份保存目录
+    def get_remote_save_mkdir(self, remote):
+        try:
+            backup_path = ''
+            if remote == 'aws_s3':
+                path = "/www/server/panel/plugin/aws_s3/config.conf"
+                conf = public.readFile(path)
+                backup_path = conf.split('|')[-2].strip()
+            elif remote == 'ftp':
+                path = "/www/server/panel/plugin/ftp/ftp.config.conf"
+                conf = json.loads(public.readFile(path))
+                backup_path = conf.get('backup_path')
+            elif remote == 'gdrive':
+                backup_path = 'bt_backup'
+            elif remote == 'gcloud_storage':
+                backup_path = 'bt_backup'
+
+            return backup_path
+        except Exception as e:
+            return ""
+
+

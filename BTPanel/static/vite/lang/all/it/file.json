@@ -314,5 +314,6 @@
 	"d29e15e1c95b7669b370b911cd0092bb": "Backup, per favore aspetta ...",
 	"99aa6e10102498ca6b95fa60d075d00e": "Permessi di fissaggio, per favore aspetta ...",
 	"df5b27593a73d378ad5e8aa3f001cdbe": "Ripristino del backup, per favore aspetta ...",
-	"9ff7aedbb97ead6f3840ce4cf984d800": "Video Player"
+	"9ff7aedbb97ead6f3840ce4cf984d800": "Video Player",
+	"4be6ecea6c4c14e13a4d9ac2cac97fba": "Trasferimento del file [{0}], se il file esiste verrà sovrascritto. Continuare?"
 }

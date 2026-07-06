@@ -88,6 +88,9 @@
       "Enable": "开启",
       "Disable": "关闭"
     },
+    "AlarmTask": {
+      "ConfigurationTask": "配置告警任务"
+    },
     "Table": {
       "Ps": "备注",
       "Status": "状态",
@@ -110,6 +113,7 @@
       "Disable": "禁用",
       "Running": "运行中",
       "Stopped": "已停止",
+      "NotConfigured": "未配置",
       "Paused": "已暂停",
       "TurnOn": "开启",
       "TurnOff": "关闭",

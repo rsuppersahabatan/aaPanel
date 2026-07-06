@@ -88,6 +88,9 @@
 			"Enable": "Abilitare",
 			"Disable": "Vicino"
 		},
+		"AlarmTask": {
+			"ConfigurationTask": "Configura le attività di allarme"
+		},
 		"Table": {
 			"Ps": "Osservazione",
 			"Status": "Stato",
@@ -110,6 +113,7 @@
 			"Disable": "Disabilitare",
 			"Running": "Corsa",
 			"Stopped": "Fermato",
+			"NotConfigured": "Non configurato",
 			"Paused": "In pausa",
 			"TurnOn": "Accendi",
 			"TurnOff": "Spegnere",

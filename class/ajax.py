@@ -10,7 +10,7 @@ from flask import session,request
 
 import public,os,json,time,apache,psutil
 class ajax:
-    __official_url = 'https://www.aapanel.com'
+    __official_url = public.OfficialApiBase()
 
     def GetApacheStatus(self,get):
         a = apache.apache()
@@ -886,7 +886,7 @@ class ajax:
 
     # 下载云端php扩展配置
     def _get_cloud_phplib(self):
-        if not session.get('download_url'): session['download_url'] = 'https://node.aapanel.com'
+        if not session.get('download_url'): session['download_url'] = public.OfficialDownloadBase()
         download_url = session['download_url'] + '/install/lib/phplib_en.json'
         tstr = public.httpGet(download_url)
         data = json.loads(tstr)
